@@ -1,0 +1,10 @@
+venv/
+cwcbot.egg-info/
+.idea
+__pycache__
+cogs/__pycache__
+config.json
+config.json.cwc
+events/__pycache__
+data/config.json
+data/db.json
