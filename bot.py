@@ -8,6 +8,9 @@ import discord
 from discord.ext import commands
 
 
+dirname = os.path.dirname(__file__)
+
+
 async def get_prefix_(bot, message):
     """
     A coroutine that returns a prefix.
