@@ -12,8 +12,8 @@ class DevCog(commands.Cog):
 
     @commands.command()
     async def test(self, context):
-        await asyncio.sleep(10)
-        await context.send('Message after 10 seconds')
+        print('Command test received')
+        await context.send('Command test received')
 
     @commands.command()
     async def reload(self, context):
