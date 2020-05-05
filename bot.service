@@ -1,9 +1,0 @@
-[Unit]
-Description=Team Bot
-
-[Service]
-User=drackmord92
-ExecStart=/usr/bin/python3.6 -u /home/drackmord92/bots/teambot/bot.py
-
-[Install]
-WantedBy=multi-user.target
