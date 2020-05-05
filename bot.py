@@ -8,15 +8,6 @@ import discord
 from discord.ext import commands
 
 
-dirname = os.path.dirname(__file__)
-
-
-def config_load():
-    with open(f"{dirname}/data/config.json", 'r', encoding='utf-8') as doc:
-        #  Please make sure encoding is correct, especially after editing the config file
-        return json.load(doc)
-
-
 async def get_prefix_(bot, message):
     """
     A coroutine that returns a prefix.
@@ -33,8 +24,6 @@ class Bot(commands.Bot):
             command_prefix=get_prefix_,
             description=kwargs.pop('description')
         )
-
-        self.config = kwargs.pop('config')
 
         self.loaded_extensions = set()
 
@@ -96,6 +85,5 @@ class Bot(commands.Bot):
 
 
 if __name__ == '__main__':
-    config = config_load()
-    bot = Bot(config=config, description=config['description'])
-    bot.run(config['token'])
+    bot = Bot(description=os.getenv('BOT_DESCRIPTION'))
+    bot.run(os.getenv('BOT_TOKEN'))
