@@ -1,21 +1,16 @@
-name: CD
-
+name: Deploy
 on:
   push:
     branches:
       - master
-
 jobs:
-  build:
-
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v1
     - name: Dokku deploy
-      uses: vitalyliber/dokku-github-action@v4.0
-      env:
-        PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-        PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
-        HOST: 51.15.103.38
-        PROJECT: duellinksbot
+      uses: AlexxNB/caprover-action@v1
+      with:
+        server: 'https://captain.paas.drackmord.space'
+        password: '${{ secrets.CAPROVER_PASSWORD }}'
+        appname: 'bot-test'
