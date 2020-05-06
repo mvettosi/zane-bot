@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Dokku deploy
+    - name: Caprover deploy
       uses: AlexxNB/caprover-action@v1
       with:
         server: 'https://captain.paas.drackmord.space'
