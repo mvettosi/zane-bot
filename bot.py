@@ -33,9 +33,8 @@ if __name__ == '__main__':
 @bot.event
 async def on_ready():
     print('-' * 10)
-    print(f'Logged in as: {self.user.name}\n'
-          f'Using discord.py version: {discord.__version__}\n'
-          f'Owner: {self.app_info.owner}\n')
+    print(f'Bot successfully loaded'
+          f'Using discord.py version: {discord.__version__}\n')
     print('-' * 10)
 
 
