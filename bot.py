@@ -31,11 +31,11 @@ if __name__ == '__main__':
 
 @bot.event
 async def on_ready():
-    logging.info('-' * 10)
+    logging.info('-------------------------------------------------')
     logging.info(f'Bot successfully loaded')
     logging.info(f'Using discord.py version: {discord.__version__}')
     logging.info(f'Template by Matteo Vettosi (github.com/mvettosi)')
-    logging.info('-' * 10)
+    logging.info('-------------------------------------------------')
 
 
 bot.run(BOT_TOKEN, bot=True, reconnect=True)
