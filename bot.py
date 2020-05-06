@@ -7,6 +7,8 @@ import sys, traceback
 import discord
 from discord.ext import commands
 
+import logging
+
 
 DIRNAME = os.path.dirname(__file__)
 BOT_PREFIX = '!'
@@ -15,6 +17,7 @@ BOT_DESC = os.getenv('BOT_DESCRIPTION')
 COGS_DIR = 'cogs'
 
 
+logging.basicConfig(level=logging.INFO)
 bot = commands.Bot(command_prefix=BOT_PREFIX, description=BOT_DESC)
 
 if __name__ == '__main__':

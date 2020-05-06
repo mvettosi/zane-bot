@@ -1,5 +1,6 @@
 from discord.ext import commands
 import asyncio
+import logging
 
 
 def setup(bot):
@@ -12,7 +13,7 @@ class DevCog(commands.Cog):
 
     @commands.command()
     async def test(self, context):
-        print('Command test received')
+        logging.info('Command test received')
         await context.send('Command test received')
 
     @commands.command()
