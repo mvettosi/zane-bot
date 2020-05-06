@@ -11,7 +11,7 @@ import logging
 
 
 DIRNAME = os.path.dirname(__file__)
-BOT_PREFIX = '!'
+BOT_PREFIX = os.getenv('BOT_PREFIX')
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 BOT_DESC = os.getenv('BOT_DESCRIPTION')
 COGS_DIR = 'cogs'
@@ -25,16 +25,17 @@ if __name__ == '__main__':
         try:
             bot.load_extension(COGS_DIR + "." + extension)
         except (discord.ClientException, ModuleNotFoundError):
-            print(f'Failed to load extension {extension}.')
+            logging.error(f'Failed to load extension {extension}.')
             traceback.print_exc()
 
 
 @bot.event
 async def on_ready():
-    print('-' * 10)
-    print(f'Bot successfully loaded\n'
-          f'Using discord.py version: {discord.__version__}')
-    print('-' * 10)
+    logging.info('-' * 10)
+    logging.info(f'Bot successfully loaded')
+    logging.info(f'Using discord.py version: {discord.__version__}')
+    logging.info(f'Template by Matteo Vettosi (github.com/mvettosi)')
+    logging.info('-' * 10)
 
 
 bot.run(BOT_TOKEN, bot=True, reconnect=True)
