@@ -5,3 +5,4 @@ __pycache__
 cogs/__pycache__
 events/__pycache__
 data/db.json
+env.list
