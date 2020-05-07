@@ -1,0 +1,40 @@
+@startuml
+
+User -> Bot: .match ${query}
+Bot -> SearchCog: query
+
+SearchCog -> database: search_many(query)
+database --> SearchCog: search_results
+
+SearchCog -> messages: generate_first_page(search_results)
+messages --> SearchCog: result_message
+SearchCog -> Bot: send(result_message)
+SearchCog -> Bot: wait_for('reaction', 1h timeout)
+loop until a choice is made or timeout
+
+    alt user reacts with next page
+        SearchCog -> messages: generate_next_page(search_results)
+        messages --> SearchCog: result_message
+        SearchCog -> Bot: send(result_message)
+        SearchCog -> Bot: wait_for('reaction', 1h timeout)
+
+    else user reacts with previous page
+        SearchCog -> messages: generate_previous_page(search_results)
+        messages --> SearchCog: result_message
+        SearchCog -> Bot: send(result_message)
+        SearchCog -> Bot: wait_for('reaction', 1h timeout)
+
+    else user reacts with a choice
+        alt user chose a card
+            SearchCog -> messages: get_card_embed(user_choice)
+            messages --> SearchCog: embed
+        else
+            SearchCog -> messages: get_skill_embed(search_result)
+            messages --> SearchCog: embed
+        end
+        SearchCog -> Bot: send_embed(embed)
+
+    end
+end
+
+@enduml

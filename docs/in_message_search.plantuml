@@ -1,0 +1,22 @@
+@startuml
+
+User -> Bot: message
+Bot -> SearchCog: message
+SearchCog -> SearchCog: get_queries(message)
+
+loop for query in queries
+    SearchCog -> database: search(query)
+    database --> SearchCog: search_result
+
+    alt search_result is a card
+        SearchCog -> messages: get_card_embed(search_result)
+        messages --> SearchCog: embed
+    else
+        SearchCog -> messages: get_skill_embed(search_result)
+        messages --> SearchCog: embed
+    end
+
+    SearchCog -> Bot: send_embed(embed)
+end
+
+@enduml

@@ -1,0 +1,43 @@
+@startuml
+
+Bot -> updates: check_updates()
+    updates -> downloads: download_tcg()
+    downloads --> updates: tcg_download
+
+    updates -> downloads: download_dl()
+    downloads --> updates: dl_download
+
+    updates -> downloads: download_skills()
+    downloads --> updates: skills_download
+
+    updates -> database: get_stored_md5()
+    database --> updates: stored_md5
+
+    alt tcg_download.md5 != stored_md5.tcg
+        updates -> database: wipe_cards()
+        database --> updates
+        updates -> database: save(tcg_download.data)
+        database --> updates
+        updates -> updates: set_tcg_md5(tcg_download.md5)
+        updates -> updates: set_dl_md5("")
+    end
+
+    alt dl_download.md5 != stored_md5.dl
+        updates -> database: update(dl_download.data)
+        database --> updates
+        updates -> updates: set_dl_md5(dl_download.md5)
+    end
+
+    alt skills_download.md5 != stored_md5.skills
+        updates -> database: wipe_skills()
+        database --> updates
+        updates -> database: save(skills_download.data)
+        database --> updates
+        updates -> updates: set_skills_md5(skills_download.md5)
+    end
+
+    updates -> database: save(stored_md5)
+
+updates --> Bot
+
+@enduml
