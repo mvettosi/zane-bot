@@ -1,0 +1,44 @@
+@startuml
+
+participant User
+participant Bot
+participant CardsCog
+participant TextUtils
+participant CardInfoUtils
+participant Database
+participant YgoApi
+
+alt database is empty
+    CardInfoUtils -> YgoApi: getAllCards()
+    YgoApi --> CardInfoUtils: allCards.json
+    CardInfoUtils -> Database: saveTcg(allCards.json)
+
+    CardInfoUtils -> DuelLinksMeta: getAllCards()
+    YgoApi --> CardInfoUtils: allCards.json
+    CardInfoUtils -> Database: saveDuelLinks(allCards.json)
+
+    CardInfoUtils -> DuelLinksMeta: getAllSkills()
+    YgoApi --> CardInfoUtils: allSkills.json
+    CardInfoUtils -> Database: saveDuelLinks(allCards.json)
+    Database --> CardInfoUtils
+end
+
+User -> Bot: message
+Bot -> CardsCog: message
+CardsCog -> TextUtils: getQueries(message)
+    alt message contains {} or <>
+        TextUtils -> TextUtils: extractQueries()
+    end
+TextUtils --> CardsCog: queries[]
+
+loop for each query
+    CardsCog -> CardInfoUtils: getCardInfo(query)
+        CardInfoUtils -> Database: searchCard(query)
+        Database --> CardInfoUtils: searchResult
+        alt searchResult not found
+            CardInfoUtils -> YgoApi: fname(query)
+        end
+    CardInfoUtils --> CardsCog: cardInfo
+end
+
+@enduml
