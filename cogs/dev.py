@@ -13,6 +13,7 @@ class DevCog(commands.Cog):
 
     @commands.command()
     async def test(self, context):
+        logging.info('')
         logging.info('Command test received')
         await context.send('Command test received')
 
