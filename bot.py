@@ -2,23 +2,22 @@ import os
 from os import listdir
 from os.path import isfile, join
 
-import sys, traceback
+import sys
+import traceback
 
 import discord
 from discord.ext import commands
 
 import logging
+from modules import config
 
 
-DIRNAME = os.path.dirname(__file__)
-BOT_PREFIX = os.getenv('BOT_PREFIX')
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-BOT_DESC = os.getenv('BOT_DESCRIPTION')
 COGS_DIR = 'cogs'
 
 
 logging.basicConfig(level=logging.INFO)
-bot = commands.Bot(command_prefix=BOT_PREFIX, description=BOT_DESC)
+bot = commands.Bot(command_prefix=config.BOT_PREFIX,
+                   description=config.BOT_DESC)
 
 if __name__ == '__main__':
     for extension in [f.replace('.py', '') for f in listdir(COGS_DIR) if isfile(join(COGS_DIR, f))]:
@@ -38,4 +37,4 @@ async def on_ready():
     logging.info('-------------------------------------------------')
 
 
-bot.run(BOT_TOKEN, bot=True, reconnect=True)
+bot.run(config.BOT_TOKEN, bot=True, reconnect=True)

@@ -1,7 +1,7 @@
 from discord.ext import commands
 import asyncio
 import logging
-from modules import download
+from modules import database
 
 
 def setup(bot):
@@ -14,8 +14,7 @@ class SearchCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        skills_download = download.download(download.FileType.SKILLS)
-        logging.info(f'Downloaded file: {skills_download}')
+        await database.check_updates()
 
     @commands.Cog.listener()
     async def on_message(self, message):
