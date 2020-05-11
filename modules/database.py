@@ -1,14 +1,20 @@
 import logging
 import json
 import time
+import pymongo
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import UpdateOne
 from modules import config
 from modules.download import download, FileType
 
 
+FORCE_CARD = '?'
+FORCE_SKILL = '!'
+
+
 client = AsyncIOMotorClient(config.DB_CONNECTION_URL)
-db = client.duellinksbot
+db = client.zanebot
+db.data.create_index([("name", pymongo.TEXT)])
 
 
 async def retrieve_md5s():
@@ -28,20 +34,19 @@ async def load_json_file(file_type, file_path):
         data_json = json.load(data_file)
 
     if file_type is FileType.TCG:
-        await db.cards.delete_many({})
-        await db.cards.insert_many(data_json['data'])
-        await insert_md5(FileType.DL, '')
+        await db.data.delete_many({"exclusive": {"$exists": False}})
+        await db.data.insert_many(data_json['data'])
 
     elif file_type is FileType.DL:
         requests = []
         for dl_card in data_json:
             card_name = dl_card['name']
             requests.append(UpdateOne({"name": card_name}, {"$set": dl_card}))
-        await db.cards.bulk_write(requests)
+        await db.data.bulk_write(requests)
 
     elif file_type is FileType.SKILLS:
-        await db.cards.delete_many({})
-        await db.skills.insert_many(data_json)
+        await db.data.delete_many({"exclusive": {"$exists": True}})
+        await db.data.insert_many(data_json)
 
 
 async def check_updates():
@@ -57,6 +62,8 @@ async def check_updates():
             await load_json_file(file_type, file_download['path'])
             logging.info(f'Loaded new version of {file_type.name}')
             await insert_md5(file_type, new_md5)
+            if file_type == FileType.TCG:
+                await insert_md5(FileType.DL, '')
         else:
             logging.info(
                 f'File {file_type.name} is still at the newest version')
@@ -65,3 +72,28 @@ async def check_updates():
         elapsed_seconds = elapsed_time % 60
         logging.info(
             f'Update took {elapsed_minutes} minutes and {elapsed_seconds} seconds')
+
+
+async def search(query, how_many):
+    enforce_token = None
+    if query[0] in [FORCE_CARD, FORCE_SKILL]:
+        # extract enforce token
+        enforce_token = query[0]
+        query = query[1:]
+
+    # base text search
+    filter = {
+        "$text": {
+            "$search": query
+        }
+    }
+
+    if enforce_token:
+        # enforcing something, wrap the base query into an AND
+        filter = {
+            "$and": [filter, {"exclusive": {"$exists": enforce_token == FORCE_SKILL}}]
+        }
+
+    projection = {'score': {'$meta': "textScore"}}
+    sorting = [('score', {'$meta': 'textScore'})]
+    return await db.data.find(filter, projection).sort(sorting).to_list(length=how_many)

@@ -1,6 +1,6 @@
-from discord.ext import commands
-import asyncio
 import logging
+import re
+from discord.ext import commands
 from modules import database
 
 
@@ -22,5 +22,15 @@ class SearchCog(commands.Cog):
             return
         if message.author.bot:
             return
+        if not bool(re.match(r'.*{.*}.*', message.content)):
+            return
 
-        await message.channel.send(f'Received: `{message.content}`')
+        queries = re.findall(r'(?<={)([^{}]*?)(?=})', message.content)
+
+        for query in queries:
+            result = await database.search(query, 1)
+            first_result = result[0]
+            name = first_result['name']
+            desc = first_result['description']
+            is_skill = 'exclusive' in first_result
+            await message.channel.send(f'Result for query `{query}`:\n```Name = {name}\nDescription = {desc}\nIs a skill = {is_skill}```')
