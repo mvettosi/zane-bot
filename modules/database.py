@@ -7,10 +7,8 @@ from pymongo import UpdateOne
 from modules import config
 from modules.download import download, FileType
 
-
 FORCE_CARD = '?'
 FORCE_SKILL = '!'
-
 
 client = AsyncIOMotorClient(config.DB_CONNECTION_URL)
 db = client.zanebot

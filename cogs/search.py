@@ -33,4 +33,5 @@ class SearchCog(commands.Cog):
             name = first_result['name']
             desc = first_result['description']
             is_skill = 'exclusive' in first_result
-            await message.channel.send(f'Result for query `{query}`:\n```Name = {name}\nDescription = {desc}\nIs a skill = {is_skill}```')
+            await message.channel.send(
+                f'Result for query `{query}`:\n```Name = {name}\nDescription = {desc}\nIs a skill = {is_skill}```')
