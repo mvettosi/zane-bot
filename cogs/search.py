@@ -46,7 +46,7 @@ class SearchCog(commands.Cog):
         queries = list(dict.fromkeys(curly_queries))
 
         if len(queries) > 3:
-            await message.channel.send('Sorry, max 3 card requests per message =/')
+            await message.channel.send('Sorry, max 3 requests per message =/')
             return
 
         for query in queries:
