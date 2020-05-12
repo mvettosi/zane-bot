@@ -39,7 +39,7 @@ async def load_json_file(file_type, file_path):
         requests = []
         for dl_card in data_json:
             card_name = dl_card['name']
-            requests.append(UpdateOne({"name": card_name}, {"$set": dl_card}))
+            requests.append(UpdateOne({"name": card_name, "exclusive": {"$exists": False}}, {"$set": dl_card}))
         await db.data.bulk_write(requests)
 
     elif file_type is FileType.SKILLS:

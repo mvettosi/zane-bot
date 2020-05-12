@@ -1,0 +1,58 @@
+{
+	"race": {
+		"Warrior": "<:Warrior:602707927224025118>",
+		"Spellcaster": "<:Spellcaster:602707926834085888>",
+		"Fairy": "<:Fairy:602707926200614912>",
+		"Fiend": "<:Fiend:602707926850732035>",
+		"Zombie": "<:Zombie:602707927102390292>",
+		"Machine": "<:Machine:602707926733291521>",
+		"Aqua": "<:Aqua:602707887931785238>",
+		"Pyro": "<:Pyro:602707925793767427>",
+		"Rock": "<:Rock:602707926213460010>",
+		"WingedBeast": "<:WingedBeast:602707926464987138>",
+		"Plant": "<:Plant:602707792138076186>",
+		"Insect": "<:Insect:602707926146088960>",
+		"Thunder": "<:Thunder:602707927484203013>",
+		"Dragon": "<:Dragon:602707926901325834>",
+		"Beast": "<:Beast:602707889018372109>",
+		"BeastWarrior": "<:BeastWarrior:602707890171543593>",
+		"Dinosaur": "<:Dinosaur:602713887141527563>",
+		"Fish": "<:Fish:602707925877915659>",
+		"SeaSerpent": "<:SeaSerpent:602707926288826378>",
+		"Reptile": "<:Reptile:602707927219830784>",
+		"Psychic": "<:Psychic:602707926767108129>",
+		"DivineBeast": "<:DivineBeast:602707925730852874>",
+		"CreatorGod": "<:CreatorGod:602707927219961866>",
+		"Wyrm": "<:Wyrm:602707927068835884>",
+		"Cyberse": "<:Cyberse:602707927421157376>",
+		"Yokai": "<:Yokai:602707927932993546>",
+		"Charisma": "<:Charisma:602707891530629130>"
+	},
+	"attribute": {
+		"EARTH": "<:EARTH:602707925726658570>",
+		"WATER": "<:WATER:602707927341596691>",
+		"FIRE": "<:FIRE:602707928255954963>",
+		"WIND": "<:WIND:602707926771171348>",
+		"LIGHT": "<:LIGHT:602707926183968768>",
+		"DARK": "<:DARK:602707926792273920>",
+		"DIVINE": "<:DIVINE:602707926594879498>",
+		"LAUGH": "<:LAUGH:602719132567207938>"
+	},
+	"type": {
+		"Spell": "<:SPELL:623021653580054538>",
+		"Trap": "<:TRAP:623021653810741258> ",
+		"Ritual": "<:Ritual:602707927274487838>",
+		"QuickPlay": "<:QuickPlay:602707927073030150> ",
+		"Continuous": "<:Continuous:602707892507770891>",
+		"Equip": "<:Equip:602707925886042119> ",
+		"Field": "<:FIELD:602707926834216963> ",
+		"Counter": "<:Counter:602707928075599872>",
+		"LinkSpell": "<:LinkSpell:602707598164099104>"
+	},
+	"misc": {
+		"scaleLeft": "<:ScaleLeft:602710168337121290>",
+		"scaleRight": "<:ScaleRight:602710170430210048>",
+		"level": "<:level:602707925949087760>",
+		"rank": "<:rank:602707927114973185>"
+	}
+}

@@ -1,6 +1,7 @@
-from discord.ext import commands
-import asyncio
 import logging
+
+# noinspection PyPackageRequirements
+from discord.ext import commands
 
 
 def setup(bot):
