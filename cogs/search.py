@@ -5,6 +5,15 @@ from discord.ext import commands
 from modules import database, messages
 from pprint import pformat
 
+BOT_INFORMATION = 'I am a Yu-Gi-Oh! Duel Links card bot made by [CwC] Drackmord#9541.'
+'\nTo search cards and skills, simply add their name or part of their name in curly brackets, like for example `{' \
+    'blue-eyes white dragon} or `{no mortal can resist}`. '
+'\nI currently don\'t support incomplete words or typos, but you can use only part of the words, for example `{{' \
+    'lara}}`. '
+'\nAlso, you can force a search to match a skill only like this `{!destiny draw}`, and a card only using `{?destiny ' \
+    'draw}. '
+'\n\nAs I\'m very new, please don\'t hesitate to mention or pm my creator for bugs or suggestions!'
+
 
 def setup(bot):
     bot.add_cog(SearchCog(bot))
@@ -24,20 +33,11 @@ class SearchCog(commands.Cog):
             return
         if message.author.bot:
             return
-        if not bool(re.match(r'.*{.*}.*', message.content)):
-            return
 
         if self.bot.user.mentioned_in(message):
-            await message.channel.send('I am a Yu-Gi-Oh! Duel Links card bot made by [CwC] Drackmord#9541.'
-                                       '\nTo search cards and skills, simply add their name or part of their name in '
-                                       'curly brackets, like for example `{blue-eyes white dragon} or `{no mortal can '
-                                       'resist}`. '
-                                       '\nI currently don\'t support incomplete words or typos, but you can use only '
-                                       'part of the words, for example `{{lara}}`. '
-                                       '\nAlso, you can force a search to match a skill only like this `{!destiny '
-                                       'draw}`, and a card only using `{?destiny draw}. '
-                                       '\n\nAs I\'m very new, please don\'t hesitate to mention or pm my creator for '
-                                       'bugs or suggestions!')
+            await message.channel.send(BOT_INFORMATION)
+        elif not bool(re.match(r'.*{.*}.*', message.content)):
+            return
 
         queries = re.findall(r'(?<={)([^{}]*?)(?=})', message.content)
 
