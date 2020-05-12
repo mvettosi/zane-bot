@@ -45,8 +45,8 @@ def get_card_type(card):
         return f'{race}/{monster_type}'
     else:
         # type_emote = EMOTES['type'][card_type]
-        subtype_emote = '' if race == 'Normal' else EMOTES['type'][race]
-        return f'{card_type}/{race} {subtype_emote}'
+        # subtype_emote = '' if race == 'Normal' else EMOTES['type'][race]
+        return f'{card_type}/{race}'
 
 
 def get_card_desc(card):
