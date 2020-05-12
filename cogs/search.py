@@ -32,7 +32,7 @@ class SearchCog(commands.Cog):
         for query in queries:
             result_list = await database.search(query, 1)
             if not result_list:
-                await message.channel.send(f'Sorry, I could not find any card or skill including "{query}". I '
+                await message.channel.send(f'Sorry, I could not find any card or skill including `{query}`. I '
                                            f'currently don\'t support incomplete words or typos, but you can use only '
                                            f'part of the words, for example `{{lara}}`')
             else:
