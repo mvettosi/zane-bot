@@ -41,6 +41,9 @@ class SearchCog(commands.Cog):
 
         queries = re.findall(r'(?<={)([^{}]*?)(?=})', message.content)
 
+        # Remove duplicates
+        queries = list(dict.fromkeys(queries))
+
         for query in queries:
             result_list = await database.search(query, 1)
             if not result_list:
