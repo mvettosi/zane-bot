@@ -40,10 +40,10 @@ class SearchCog(commands.Cog):
             return
 
         curly_queries = re.findall(r'(?<={)([^{}]*?)(?=})', message.content)
-        angular_queries = re.findall(r'(?<=<)([^<>]*?)(?=>)', message.content)
+        # angular_queries = re.findall(r'(?<=<)([^<>]*?)(?=>)', message.content)
 
         # Remove duplicates
-        queries = list(dict.fromkeys(curly_queries + angular_queries))
+        queries = list(dict.fromkeys(curly_queries))
 
         if len(queries) > 3:
             await message.channel.send('Sorry, max 3 card requests per message =/')
