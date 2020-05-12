@@ -45,6 +45,10 @@ class SearchCog(commands.Cog):
         # Remove duplicates
         queries = list(dict.fromkeys(curly_queries + angular_queries))
 
+        if len(queries) > 3:
+            await message.channel.send('Sorry, max 3 card requests per message =/')
+            return
+
         for query in queries:
             result_list = await database.search(query, 1)
             if not result_list:
