@@ -34,6 +34,7 @@ async def load_json_file(file_type, file_path):
     if file_type is FileType.TCG:
         await db.data.delete_many({"exclusive": {"$exists": False}})
         await db.data.insert_many(data_json['data'])
+        await db.data.delete_many({"type": "Skill Card"})
 
     elif file_type is FileType.DL:
         requests = []
@@ -80,7 +81,7 @@ async def search(query, how_many):
         query = query[1:]
 
     # base text search
-    filter = {
+    search_filter = {
         "$text": {
             "$search": query
         }
@@ -88,10 +89,10 @@ async def search(query, how_many):
 
     if enforce_token:
         # enforcing something, wrap the base query into an AND
-        filter = {
-            "$and": [filter, {"exclusive": {"$exists": enforce_token == FORCE_SKILL}}]
+        search_filter = {
+            "$and": [search_filter, {"exclusive": {"$exists": enforce_token == FORCE_SKILL}}]
         }
 
     projection = {'score': {'$meta': "textScore"}}
     sorting = [('score', {'$meta': 'textScore'})]
-    return await db.data.find(filter, projection).sort(sorting).to_list(length=how_many)
+    return await db.data.find(search_filter, projection).sort(sorting).to_list(length=how_many)
