@@ -36,13 +36,14 @@ class SearchCog(commands.Cog):
 
         if self.bot.user.mentioned_in(message):
             await message.channel.send(BOT_INFORMATION)
-        elif not bool(re.match(r'.*{.*}.*', message.content)):
+        elif not bool(re.match(r'.*[{<].*[}>].*', message.content)):
             return
 
-        queries = re.findall(r'(?<={)([^{}]*?)(?=})', message.content)
+        curly_queries = re.findall(r'(?<={)([^{}]*?)(?=})', message.content)
+        angular_queries = re.findall(r'(?<=<)([^<>]*?)(?=>)', message.content)
 
         # Remove duplicates
-        queries = list(dict.fromkeys(queries))
+        queries = list(dict.fromkeys(curly_queries + angular_queries))
 
         for query in queries:
             result_list = await database.search(query, 1)
