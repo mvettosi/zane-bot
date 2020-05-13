@@ -3,6 +3,7 @@ import discord
 # noinspection PyPackageRequirements
 from discord import Colour
 from modules.config import EMOTES, COLORS
+from modules import database
 
 
 def is_skill(result):
@@ -49,8 +50,11 @@ def get_card_type(card):
         return f'{card_type}/{race}'
 
 
-def get_card_desc(card):
+async def get_card_desc(card):
     desc = ''
+
+    status = await database.get_forbidden_status(card['name'])
+    desc = desc + f'**Forbidden Status**: __{status}__\n'
 
     if 'archetype' in card:
         archetype = card['archetype']
@@ -120,9 +124,9 @@ def get_card_text_title(card):
         return 'Card Effect'
 
 
-def get_card_embed(card):
+async def get_card_embed(card):
     name = card['name']
-    desc = get_card_desc(card)
+    desc = await get_card_desc(card)
     color = get_card_color(card)
     thumbnail_url = get_card_thumbnail_url(card)
     desc_title = get_card_text_title(card)
@@ -138,8 +142,8 @@ def get_card_embed(card):
     return embed
 
 
-def get_embed(result):
+async def get_embed(result):
     if is_skill(result):
         return get_skill_embed(result)
     else:
-        return get_card_embed(result)
+        return await get_card_embed(result)

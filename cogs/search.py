@@ -62,6 +62,6 @@ class SearchCog(commands.Cog):
                                            f'part of the words, for example `{{lara}}`')
             else:
                 result = result_list[0]
-                result_embed = messages.get_embed(result)
+                result_embed = await messages.get_embed(result)
                 await message.channel.send(embed=result_embed)
                 logging.debug(f'\n\nSearch result:\n{pformat(result)}')

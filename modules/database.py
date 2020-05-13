@@ -45,6 +45,15 @@ async def load_json_file(file_type, file_path):
                           upsert=True))
         await db.data.bulk_write(requests)
 
+    elif file_type is FileType.FORBIDDEN:
+        await db.forbidden.delete_many({})
+        new_list = []
+        for ban_type in data_json:
+            limit = ban_type['section']
+            for card in ban_type['cards']:
+                new_list.append({'name': card['name'], 'status': limit})
+        await db.forbidden.insert_many(new_list)
+
     elif file_type is FileType.SKILLS:
         await db.data.delete_many({"exclusive": {"$exists": True}})
         await db.data.insert_many(data_json)
@@ -99,3 +108,11 @@ async def search(query, how_many):
     projection = {'score': {'$meta': "textScore"}}
     sorting = [('score', {'$meta': 'textScore'})]
     return await db.data.find(search_filter, projection).sort(sorting).to_list(length=how_many)
+
+
+async def get_forbidden_status(card_name):
+    result = await db.forbidden.find_one({'name': card_name})
+    if result:
+        return result['status']
+    else:
+        return 'Unlimited'

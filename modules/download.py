@@ -13,6 +13,7 @@ class FileType(Enum):
     DL = 'https://www.duellinksmeta.com/data/cards.json'
     EXCLUSIVE = 'https://www.duellinksmeta.com/data/exclusiveCards.json'
     EXCLUSIVE_IMG = 'https://www.duellinksmeta.com/data/cardImageFilter.json'
+    FORBIDDEN = 'https://www.duellinksmeta.com/data/forbiddenList.json'
     SKILLS = 'https://www.duellinksmeta.com/data/skills.json'
 
 
