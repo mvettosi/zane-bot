@@ -19,6 +19,10 @@ def setup(bot):
     bot.add_cog(SearchCog(bot))
 
 
+def bad_query(q):
+    return q.startswith(('!', ':', 'a:', '@', '#', '://'))
+
+
 class SearchCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -40,7 +44,8 @@ class SearchCog(commands.Cog):
             return
 
         curly_queries = re.findall(r'(?<={)([^{}]*?)(?=})', message.content)
-        angular_queries = re.findall(r'(?<=<)([^<@:>]*?)(?=>)', message.content)
+        angular_queries = re.findall(r'(?<=<)([^<>]*?)(?=>)', message.content)
+        angular_queries = [q for q in angular_queries if not bad_query(q)]
 
         # Remove duplicates
         queries = list(dict.fromkeys(curly_queries + angular_queries))
