@@ -36,11 +36,13 @@ async def load_json_file(file_type, file_path):
         await db.data.insert_many(data_json['data'])
         await db.data.delete_many({"type": "Skill Card"})
 
-    elif file_type is FileType.DL:
+    elif file_type in [FileType.DL, FileType.EXCLUSIVE, FileType.EXCLUSIVE_IMG]:
         requests = []
         for dl_card in data_json:
             card_name = dl_card['name']
-            requests.append(UpdateOne({"name": card_name, "exclusive": {"$exists": False}}, {"$set": dl_card}))
+            requests.append(
+                UpdateOne(filter={"name": card_name, "exclusive": {"$exists": False}}, update={"$set": dl_card},
+                          upsert=True))
         await db.data.bulk_write(requests)
 
     elif file_type is FileType.SKILLS:
@@ -63,6 +65,7 @@ async def check_updates():
             await insert_md5(file_type, new_md5)
             if file_type == FileType.TCG:
                 await insert_md5(FileType.DL, '')
+                await insert_md5(FileType.EXCLUSIVE, '')
         else:
             logging.info(
                 f'File {file_type.name} is still at the newest version')

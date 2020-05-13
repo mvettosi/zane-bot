@@ -91,8 +91,13 @@ def get_card_desc(card):
 
 
 def get_card_thumbnail_url(card):
-    card_id = card['id']
-    return f'https://pics.alphakretin.fail/{card_id}.png'
+    if 'id' in card:
+        # card_id = card['id']
+        # return f'https://pics.alphakretin.fail/{card_id}.png'
+        return card['card_images'][0]['image_url']
+    elif 'customURL' in card:
+        custom_url = card['customURL']
+        return f'https://www.duellinksmeta.com/{custom_url}'
 
 
 def get_card_color(card):
@@ -122,12 +127,14 @@ def get_card_embed(card):
     thumbnail_url = get_card_thumbnail_url(card)
     desc_title = get_card_text_title(card)
     card_text = card['desc']
-    card_id = card['id']
 
     embed = discord.Embed(title=name, description=desc, color=color)
     embed.set_thumbnail(url=thumbnail_url)
     embed.add_field(name=desc_title, value=card_text, inline=False)
-    embed.set_footer(text=card_id)
+
+    if 'id' in card:
+        card_id = card['id']
+        embed.set_footer(text=card_id)
     return embed
 
 
