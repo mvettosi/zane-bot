@@ -40,11 +40,11 @@ class SearchCog(commands.Cog):
             return
 
         curly_queries = re.findall(r'(?<={)([^{}]*?)(?=})', message.content)
-        # angular_queries = re.findall(r'(?<=<)([^<>]*?)(?=>)', message.content)
-        # angular_queries = [q for q in angular_queries if not q.startswith(':')]
+        angular_queries = re.findall(r'(?<=<)([^<>]*?)(?=>)', message.content)
+        angular_queries = [q for q in angular_queries if not q.startswith(':')]
 
         # Remove duplicates
-        queries = list(dict.fromkeys(curly_queries))
+        queries = list(dict.fromkeys(curly_queries + angular_queries))
 
         if len(queries) > 3:
             await message.channel.send('Sorry, max 3 requests per message =/')

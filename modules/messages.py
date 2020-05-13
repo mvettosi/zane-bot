@@ -68,14 +68,21 @@ def get_card_desc(card):
 
     if card['type'] == 'Monster':
         attribute = card['attribute']
-        # attribute_emote = EMOTES['attribute'][attribute]
         desc = desc + f' **Attribute**: {attribute}'
 
-        level = card['level']
-        # level_emote = EMOTES['misc']['level']
+        if 'level' in card:
+            level = card['level']
+            desc = desc + f'\n**Level**: {level}'
+        elif 'linkval' in card:
+            linkval = card['linkval']
+            desc = desc + f'\n**Link Val**: {linkval}'
+
         attack = card['atk']
-        defense = card['def']
-        desc = desc + f'\n**Level**: {level} **ATK**: {attack} **DEF**: {defense}'
+        desc = desc + f' **ATK**: {attack}'
+
+        if 'def' in card:
+            defense = card['def']
+            desc = desc + f' **DEF**: {defense}'
 
     how = ', '.join(card['how']) if 'how' in card else 'Unavailable'
     desc = desc + f'\n**How to Obtain**: {how}'
