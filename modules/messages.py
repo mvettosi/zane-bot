@@ -1,10 +1,12 @@
 # noinspection PyPackageRequirements
+import logging
+
 import discord
 # noinspection PyPackageRequirements
 from discord import Colour
 from modules.config import EMOTES, COLORS
 from modules import database
-
+import urllib.parse
 
 def is_skill(result):
     return 'exclusive' in result
@@ -50,11 +52,8 @@ def get_card_type(card):
         return f'{card_type}/{race}'
 
 
-async def get_card_desc(card):
-    desc = ''
-
-    status = await database.get_forbidden_status(card['name'])
-    desc = desc + f'**Forbidden Status**: __{status}__\n'
+async def get_card_desc(card, status):
+    desc = f'**Forbidden Status**: __{status}__\n'
 
     if 'archetype' in card:
         archetype = card['archetype']
@@ -94,14 +93,25 @@ async def get_card_desc(card):
     return desc
 
 
-def get_card_thumbnail_url(card):
-    if 'id' in card:
-        # card_id = card['id']
-        # return f'https://pics.alphakretin.fail/{card_id}.png'
-        return card['card_images'][0]['image_url']
-    elif 'customURL' in card:
+def get_card_thumbnail_url(card, status):
+    result = ''
+    if 'customURL' in card:
         custom_url = card['customURL']
-        return f'https://www.duellinksmeta.com/{custom_url}'
+        result = f'https://www.duellinksmeta.com/{custom_url}'
+    elif 'konami_id' in card:
+        konami_id = card['konami_id']
+        result = f'https://images.weserv.nl/?url=https://www.konami.com/yugioh/duel_links/en/box/cards/en/{konami_id}.jpg'
+    elif 'card_images' in card:
+        result = card['card_images'][0]['image_url']
+
+    if result and 'rarity' in card:
+        rarity = card['rarity']
+        url_encoded = urllib.parse.quote(result)
+        result = f'http://dl-card-annotator.paas.drackmord.space/?url={url_encoded}&rarity={rarity}'
+        if status.startswith('Limited'):
+            limit = status[-1]
+            result = result + f'&limit={limit}'
+    return result
 
 
 def get_card_color(card):
@@ -126,9 +136,10 @@ def get_card_text_title(card):
 
 async def get_card_embed(card):
     name = card['name']
-    desc = await get_card_desc(card)
+    status = await database.get_forbidden_status(card['name'])
+    desc = await get_card_desc(card, status)
     color = get_card_color(card)
-    thumbnail_url = get_card_thumbnail_url(card)
+    thumbnail_url = get_card_thumbnail_url(card, status)
     desc_title = get_card_text_title(card)
     card_text = card['desc']
 

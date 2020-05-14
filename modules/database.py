@@ -36,12 +36,26 @@ async def load_json_file(file_type, file_path):
         await db.data.insert_many(data_json['data'])
         await db.data.delete_many({"type": "Skill Card"})
 
-    elif file_type in [FileType.DL, FileType.EXCLUSIVE, FileType.EXCLUSIVE_IMG]:
+    elif file_type in [FileType.DL, FileType.EXCLUSIVE]:
         requests = []
         for dl_card in data_json:
             card_name = dl_card['name']
             requests.append(
                 UpdateOne(filter={"name": card_name, "exclusive": {"$exists": False}}, update={"$set": dl_card},
+                          upsert=True))
+        await db.data.bulk_write(requests)
+
+    elif file_type is FileType.EXCLUSIVE_IMG:
+        requests = []
+        for dl_card in data_json:
+            card_name = dl_card['name']
+            to_set = {'name': card_name}
+            if 'ID' in dl_card:
+                to_set['konami_id'] = dl_card['ID']
+            elif 'customURL' in dl_card:
+                to_set['customURL'] = dl_card['customURL']
+            requests.append(
+                UpdateOne(filter={"name": card_name, "exclusive": {"$exists": False}}, update={"$set": to_set},
                           upsert=True))
         await db.data.bulk_write(requests)
 
