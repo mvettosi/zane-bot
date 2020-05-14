@@ -55,7 +55,10 @@ class SearchCog(commands.Cog):
             return
 
         for query in queries:
-            result_list = await database.search(query, 1)
+            # Try first with a perfect match
+            result_list = await database.search(query, 1, True)
+            if not result_list:
+                result_list = await database.search(query, 1)
             if not result_list:
                 await message.channel.send(f'Sorry, I could not find any card or skill including `{query}`. I '
                                            f'currently don\'t support incomplete words or typos, but you can use only '

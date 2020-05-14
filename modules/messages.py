@@ -104,7 +104,7 @@ def get_card_thumbnail_url(card, status):
     elif 'card_images' in card:
         result = card['card_images'][0]['image_url']
 
-    if result and 'rarity' in card:
+    if result and 'rarity' in card and card['rarity'] != 'N/A':
         rarity = card['rarity']
         url_encoded = urllib.parse.quote(result)
         result = f'http://dl-card-annotator.paas.drackmord.space/?url={url_encoded}&rarity={rarity}'

@@ -99,12 +99,15 @@ async def check_updates():
             f'Update took {elapsed_minutes} minutes and {elapsed_seconds} seconds')
 
 
-async def search(query, how_many):
+async def search(query, how_many, exact=False):
     enforce_token = None
     if query[0] in [FORCE_CARD, FORCE_SKILL]:
         # extract enforce token
         enforce_token = query[0]
         query = query[1:]
+
+    if exact:
+        query = f'\"{query}\"'
 
     # base text search
     search_filter = {
@@ -121,6 +124,9 @@ async def search(query, how_many):
 
     projection = {'score': {'$meta': "textScore"}}
     sorting = [('score', {'$meta': 'textScore'})]
+
+    exact_filter = search_filter.copy()
+
     return await db.data.find(search_filter, projection).sort(sorting).to_list(length=how_many)
 
 
