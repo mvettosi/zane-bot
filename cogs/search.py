@@ -67,4 +67,6 @@ class SearchCog(commands.Cog):
                 result = result_list[0]
                 result_embed = await messages.get_embed(result)
                 await message.channel.send(embed=result_embed)
-                logging.debug(f'\n\nSearch result:\n{pformat(result)}')
+                result_name = result['name']
+                logging.info(f'\n\nShowing result for: {result_name}')
+                logging.debug(f'Full body:\n{pformat(result)}')
