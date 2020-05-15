@@ -19,8 +19,19 @@ def setup(bot):
     bot.add_cog(SearchCog(bot))
 
 
-def bad_query(q):
+def discord_item(q):
     return q.startswith(('!', ':', 'a:', '@', '#', '://'))
+
+
+def get_queries(message_content):
+    # Find {...} queries
+    curly_queries = re.findall(r'(?<={)([^{}]*?)(?=})', message_content)
+    # Find <...> queries
+    angular_queries = re.findall(r'(?<=<)([^<>]*?)(?=>)', message_content)
+    # Remove fake queries from discord special items (emotes/mentions/channels)
+    angular_queries = [q for q in angular_queries if not discord_item(q)]
+    # Remove duplicates and return
+    return list(dict.fromkeys(curly_queries + angular_queries))
 
 
 class SearchCog(commands.Cog):
@@ -40,15 +51,10 @@ class SearchCog(commands.Cog):
 
         if self.bot.user.mentioned_in(message):
             await message.channel.send(BOT_INFORMATION)
-        elif not bool(re.match(r'.*[{<].*[}>].*', message.content)):
+
+        queries = get_queries(message.content)
+        if not queries:
             return
-
-        curly_queries = re.findall(r'(?<={)([^{}]*?)(?=})', message.content)
-        angular_queries = re.findall(r'(?<=<)([^<>]*?)(?=>)', message.content)
-        angular_queries = [q for q in angular_queries if not bad_query(q)]
-
-        # Remove duplicates
-        queries = list(dict.fromkeys(curly_queries + angular_queries))
 
         if len(queries) > 3:
             await message.channel.send('Sorry, max 3 requests per message =/')
