@@ -94,24 +94,31 @@ async def get_card_desc(card, status):
 
 
 def get_card_thumbnail_url(card, status):
-    result = ''
-    if 'customURL' in card:
+    # result = ''
+    # if 'customURL' in card:
+    #     custom_url = card['customURL']
+    #     result = f'https://www.duellinksmeta.com/{custom_url}'
+    # elif 'konami_id' in card:
+    #     konami_id = card['konami_id']
+    #     result = f'https://images.weserv.nl/?url=https://www.konami.com/yugioh/duel_links/en/box/cards/en/{konami_id}.jpg'
+    # elif 'card_images' in card:
+    #     result = card['card_images'][0]['image_url']
+    #
+    # if result and 'rarity' in card and card['rarity'] != 'N/A':
+    #     rarity = card['rarity']
+    #     url_encoded = urllib.parse.quote(result)
+    #     result = f'http://dl-card-annotator.paas.drackmord.space/?url={url_encoded}&rarity={rarity}'
+    #     if status.startswith('Limited'):
+    #         limit = status[-1]
+    #         result = result + f'&limit={limit}'
+    # return result
+    if 'id' in card:
+        # card_id = card['id']
+        # return f'https://pics.alphakretin.fail/{card_id}.png'
+        return card['card_images'][0]['image_url']
+    elif 'customURL' in card:
         custom_url = card['customURL']
-        result = f'https://www.duellinksmeta.com/{custom_url}'
-    elif 'konami_id' in card:
-        konami_id = card['konami_id']
-        result = f'https://images.weserv.nl/?url=https://www.konami.com/yugioh/duel_links/en/box/cards/en/{konami_id}.jpg'
-    elif 'card_images' in card:
-        result = card['card_images'][0]['image_url']
-
-    if result and 'rarity' in card and card['rarity'] != 'N/A':
-        rarity = card['rarity']
-        url_encoded = urllib.parse.quote(result)
-        result = f'http://dl-card-annotator.paas.drackmord.space/?url={url_encoded}&rarity={rarity}'
-        if status.startswith('Limited'):
-            limit = status[-1]
-            result = result + f'&limit={limit}'
-    return result
+        return f'https://www.duellinksmeta.com/{custom_url}'
 
 
 def get_card_color(card):
