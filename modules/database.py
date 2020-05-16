@@ -101,7 +101,7 @@ async def check_updates():
 
 async def search(query, how_many, exact=False):
     enforce_token = None
-    if query[0] in [FORCE_CARD, FORCE_SKILL]:
+    if query and query[0] in [FORCE_CARD, FORCE_SKILL]:
         # extract enforce token
         enforce_token = query[0]
         query = query[1:]
@@ -124,8 +124,6 @@ async def search(query, how_many, exact=False):
 
     projection = {'score': {'$meta': "textScore"}}
     sorting = [('score', {'$meta': 'textScore'})]
-
-    exact_filter = search_filter.copy()
 
     return await db.data.find(search_filter, projection).sort(sorting).to_list(length=how_many)
 

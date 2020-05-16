@@ -1,5 +1,6 @@
 import logging
 import re
+import traceback
 # noinspection PyPackageRequirements
 from discord.ext import commands
 from modules import database, messages
@@ -13,6 +14,7 @@ BOT_INFORMATION = ('I am a Yu-Gi-Oh! Duel Links card bot made by [CwC] Drackmord
                    '\n\nAlso, you can force a search to match a skill only like this `{!destiny draw}`, and a card only'
                    ' using `{?destiny draw}`.'
                    '\n\nAs I\'m very new, please don\'t hesitate to mention or pm my creator for bugs or suggestions!')
+AUTHOR_ID = 351861715283214338
 
 
 def setup(bot):
@@ -70,9 +72,18 @@ class SearchCog(commands.Cog):
                                            f'currently don\'t support incomplete words or typos, but you can use only '
                                            f'part of the words, for example `{{lara}}`')
             else:
-                result = result_list[0]
-                result_embed = await messages.get_embed(result)
-                await message.channel.send(embed=result_embed)
-                result_name = result['name']
-                logging.info(f'\n\nShowing result for: {result_name}')
-                logging.debug(f'Full body:\n{pformat(result)}')
+                await self.show_result(message.channel, query, result_list[0])
+
+    async def show_result(self, channel, query, result):
+        try:
+            result_embed = await messages.get_embed(result)
+            await channel.send(embed=result_embed)
+            result_name = result['name']
+            logging.info(f'\n\nShowing result for: {result_name}')
+            logging.debug(f'Full body:\n{pformat(result)}')
+        except Exception as e:
+            user = self.bot.get_user(AUTHOR_ID)
+            trace = traceback.format_exc()
+            if len(trace) > 2000:
+                trace = trace[0:2000]
+            await user.send(f'Exception when processing query: `{query}`\n```{trace}```')

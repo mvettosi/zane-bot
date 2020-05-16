@@ -16,6 +16,7 @@ COGS_DIR = 'cogs'
 
 
 logging.basicConfig(level=logging.INFO)
+logging.getLogger("discord").setLevel(logging.WARNING)
 bot = commands.Bot(command_prefix=config.BOT_PREFIX,
                    description=config.BOT_DESC)
 
