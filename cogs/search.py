@@ -87,3 +87,5 @@ class SearchCog(commands.Cog):
             if len(trace) > 2000:
                 trace = trace[0:2000]
             await user.send(f'Exception when processing query: `{query}`\n```{trace}```')
+            await channel.send(f'Sorry, some internal error occurred. Rest assured that I also pinged my creator with '
+                               f'the error details and I\'ll continue to do so until this is fixed =D')
