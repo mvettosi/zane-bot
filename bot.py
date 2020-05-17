@@ -10,6 +10,7 @@ from discord.ext import commands
 
 import logging
 from modules import config
+# from modules import embed_help_command
 
 
 COGS_DIR = 'cogs'
@@ -17,8 +18,8 @@ COGS_DIR = 'cogs'
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("discord").setLevel(logging.WARNING)
-bot = commands.Bot(command_prefix=config.BOT_PREFIX,
-                   description=config.BOT_DESC)
+help_command = commands.MinimalHelpCommand(no_category='Others', commands_heading='commands:')
+bot = commands.Bot(command_prefix=config.BOT_PREFIX, description=config.BOT_DESC, help_command=help_command)
 
 if __name__ == '__main__':
     for extension in [f.replace('.py', '') for f in listdir(COGS_DIR) if isfile(join(COGS_DIR, f))]:

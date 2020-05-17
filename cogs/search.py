@@ -36,7 +36,8 @@ def get_queries(message_content):
     return list(dict.fromkeys(curly_queries + angular_queries))
 
 
-class SearchCog(commands.Cog):
+class SearchCog(commands.Cog, name='Search'):
+    """Commands related to searching cards and skills"""
     def __init__(self, bot):
         self.bot = bot
 
@@ -73,6 +74,14 @@ class SearchCog(commands.Cog):
                                            f'part of the words, for example `{{lara}}`')
             else:
                 await self.show_result(message.channel, query, result_list[0])
+
+    @commands.command()
+    async def match(self, context):
+        await context.send('match')
+
+    @commands.command(hidden=True)
+    async def reload_db(self, context):
+        await context.send('reload_db')
 
     async def show_result(self, channel, query, result):
         try:
