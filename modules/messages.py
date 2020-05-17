@@ -39,19 +39,6 @@ def get_skill_embed(skill):
     return embed
 
 
-def get_card_type(card):
-    card_type = card['type']
-    race = card['race']
-    if card_type == 'Monster':
-        monster_type = card['monster_type']
-        # race_emote = EMOTES['race'][race]
-        return f'{race}/{monster_type}'
-    else:
-        # type_emote = EMOTES['type'][card_type]
-        # subtype_emote = '' if race == 'Normal' else EMOTES['type'][race]
-        return f'{card_type}/{race}'
-
-
 async def get_card_desc(card, status):
     desc = f'**Forbidden Status**: __{status}__\n'
 
@@ -66,10 +53,12 @@ async def get_card_desc(card, status):
         release = card['release'] if 'release' in card else 'Not released yet'
         desc = desc + f' **Released**: {release}'
 
-    type_text = get_card_type(card)
+    card_type = card['type']
+    race = card['race']
+    type_text = f'{card_type}/{race}'
     desc = desc + f'\n**Type**: {type_text}'
 
-    if card['type'] == 'Monster':
+    if 'Monster' in card['type']:
         attribute = card['attribute']
         desc = desc + f' **Attribute**: {attribute}'
 
@@ -123,17 +112,13 @@ def get_card_thumbnail_url(card, status):
 
 def get_card_color(card):
     card_type = card['type']
-    if card_type == 'Spell' or card['type'] == 'Trap':
-        color_string = COLORS[card_type]
-    else:
-        monster_type = card['monster_type']
-        color_string = COLORS[monster_type]
+    color_string = COLORS[card_type]
     return int(color_string, 16)
 
 
 def get_card_text_title(card):
-    if card['type'] == 'Monster':
-        if card['monster_type'] == 'Normal':
+    if 'Monster' in card['type']:
+        if 'Normal' in card['type']:
             return 'Lore Text'
         else:
             return 'Monster Effect'

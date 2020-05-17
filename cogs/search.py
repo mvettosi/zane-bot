@@ -86,6 +86,9 @@ class SearchCog(commands.Cog):
             trace = traceback.format_exc()
             if len(trace) > 2000:
                 trace = trace[0:2000]
-            await user.send(f'Exception when processing query: `{query}`\n```{trace}```')
-            await channel.send(f'Sorry, some internal error occurred. Rest assured that I also pinged my creator with '
-                               f'the error details and I\'ll continue to do so until this is fixed =D')
+            result_name = result['name']
+            logging.error('')
+            logging.error(f'Error processing "{result_name}" for query "{query}"')
+            await user.send(f'Query = `{query}`\nCard pulled = {result_name}\n```{trace}```')
+            await channel.send(f'Sorry, some internal error occurred. I\'m still in testing but don\'t worry, I just '
+                               f'pinged my author with the details so this will be fixed soon!')

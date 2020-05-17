@@ -36,6 +36,11 @@ async def on_ready():
     logging.info(f'Using discord.py version: {discord.__version__}')
     logging.info(f'Template by Matteo Vettosi (github.com/mvettosi)')
     logging.info('-------------------------------------------------')
+    servers = list(bot.guilds)
+    logging.info(f'Member of {len(servers)} servers:')
+    for server in servers:
+        logging.info(server.name)
+    logging.info('-------------------------------------------------')
 
 
 bot.run(config.BOT_TOKEN, bot=True, reconnect=True)

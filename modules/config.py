@@ -5,6 +5,7 @@ BOT_PREFIX = os.getenv('BOT_PREFIX')
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 BOT_DESC = os.getenv('BOT_DESCRIPTION')
 DB_CONNECTION_URL = os.getenv('DB_CONNECTION_URL')
+DB_NAME = os.getenv('DB_NAME')
 
 with open('data/emotes.json') as emotes_file:
     EMOTES = json.load(emotes_file)
