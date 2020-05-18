@@ -40,7 +40,8 @@ async def load_json_file(file_type, file_path):
     elif file_type in [FileType.DL, FileType.EXCLUSIVE]:
         requests = []
         for dl_card in data_json:
-            dl_card.pop('type', None)
+            if file_type is FileType.DL:
+                dl_card.pop('type', None)
             card_name = dl_card['name']
             requests.append(
                 UpdateOne(filter={"name": card_name, "exclusive": {"$exists": False}}, update={"$set": dl_card},
