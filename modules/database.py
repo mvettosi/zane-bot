@@ -141,3 +141,7 @@ async def get_forbidden_status(card_name):
 
 async def update_card(card):
     await db.data.update_one({'_id': ObjectId(card['_id'])},  {'$set': card})
+
+
+async def clean_md5s():
+    await db.md5.delete_many({})
