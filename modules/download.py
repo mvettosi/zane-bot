@@ -1,6 +1,7 @@
 import os
 import shutil
-import requests
+
+import aiohttp
 import logging
 import hashlib
 from enum import Enum
@@ -17,24 +18,24 @@ class FileType(Enum):
     SKILLS = 'https://www.duellinksmeta.com/data/skills.json'
 
 
-def download(file_type):
+async def download(file_type):
     shutil.rmtree(DOWNLOAD_FOLDER, ignore_errors=True)
     os.makedirs(DOWNLOAD_FOLDER)
     file_name = f'{file_type.name}.json'
     file_path = os.path.join(DOWNLOAD_FOLDER, file_name)
 
-    r = requests.get(file_type.value, stream=True)
-    if r.ok:
-        logging.info(
-            f'Downloading {file_type} to {os.path.abspath(file_path)}')
-        with open(file_path, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=1024 * 8):
-                if chunk:
-                    f.write(chunk)
-                    f.flush()
-                    os.fsync(f.fileno())
-        md5 = hashlib.md5(open(file_path, 'rb').read()).hexdigest()
-        return {'path': file_path, 'md5': md5}
-    else:  # HTTP status code 4XX/5XX
-        logging.error(
-            f'Download failed: status code {r.status_code}\n{r.text}')
+    logging.info(f'Downloading {file_type} to {os.path.abspath(file_path)}')
+    async with aiohttp.ClientSession() as session:
+        async with session.get(file_type.value) as resp:
+            if resp.status == 200:
+                with open(file_path, 'wb') as fd:
+                    while True:
+                        chunk = await resp.content.read(1024 * 8)
+                        if not chunk:
+                            break
+                        fd.write(chunk)
+                md5 = hashlib.md5(open(file_path, 'rb').read()).hexdigest()
+                return {'path': file_path, 'md5': md5}
+            else:  # HTTP status code 4XX/5XX
+                logging.error(f'Download failed: status code {resp.status}\n{resp.text()}')
+

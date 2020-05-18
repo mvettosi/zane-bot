@@ -75,20 +75,24 @@ class SearchCog(commands.Cog, name='Search'):
             else:
                 await self.show_result(message.channel, query, result_list[0])
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def match(self, context):
         await context.send('match')
 
     @commands.command(hidden=True)
-    async def reload_db(self, context):
-        await context.send('reload_db')
+    async def update(self, context):
+        await context.send('Checking for database updates...')
+        await database.check_updates()
+        await context.send('Database updated!')
 
     async def show_result(self, channel, query, result):
+        logging.info('')
+        logging.info(f'Processing query: {query}')
         try:
             result_embed = await messages.get_embed(result)
             await channel.send(embed=result_embed)
             result_name = result['name']
-            logging.info(f'\n\nShowing result for: {result_name}')
+            logging.info(f'Showing result: {result_name}')
             logging.debug(f'Full body:\n{pformat(result)}')
         except Exception as e:
             user = self.bot.get_user(AUTHOR_ID)
@@ -96,7 +100,6 @@ class SearchCog(commands.Cog, name='Search'):
             if len(trace) > 2000:
                 trace = trace[0:2000]
             result_name = result['name']
-            logging.error('')
             logging.error(f'Error processing "{result_name}" for query "{query}"')
             await user.send(f'Query = `{query}`\nCard pulled = {result_name}\n```{trace}```')
             await channel.send(f'Sorry, some internal error occurred. I\'m still in testing but don\'t worry, I just '

@@ -2,6 +2,7 @@ import logging
 import json
 import time
 import pymongo
+from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import UpdateOne
 from modules import config
@@ -80,7 +81,7 @@ async def check_updates():
         logging.info(f'')
         logging.info(f'Checking {file_type.name} updates...')
         start_time = time.time()
-        file_download = download(file_type)
+        file_download = await download(file_type)
         new_md5 = file_download['md5']
         if new_md5 != stored_md5[file_type.name]:
             logging.info(f'New md5 found for {file_type.name}: {new_md5}')
@@ -135,3 +136,7 @@ async def get_forbidden_status(card_name):
         return result['status']
     else:
         return 'Unlimited'
+
+
+async def update_card(card):
+    await db.data.update_one({'_id': ObjectId(card['_id'])},  {'$set': card})
