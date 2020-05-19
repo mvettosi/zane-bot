@@ -73,7 +73,7 @@ class SearchCog(commands.Cog, name='Search'):
                                            f'currently don\'t support incomplete words or typos, but you can use only '
                                            f'part of the words, for example `{{lara}}`')
             else:
-                await self.show_result(message.channel, query, result_list[0])
+                await self.show_result(message, query, result_list[0])
 
     @commands.command(hidden=True)
     async def match(self, context, *, args=''):
@@ -94,12 +94,15 @@ class SearchCog(commands.Cog, name='Search'):
         await database.check_updates()
         await context.send('Database rebuilt!')
 
-    async def show_result(self, channel, query, result):
+    async def show_result(self, message, query, result):
         logging.info('')
-        logging.info(f'Processing query: {query}')
+        server_name = message.channel.guild.name
+        channel_name = message.channel.name
+        author_name = message.author.name
+        logging.info(f'{server_name}, #{channel_name}, {author_name}, query: {query}')
         try:
             result_embed = await messages.get_embed(result)
-            await channel.send(embed=result_embed)
+            await message.channel.send(embed=result_embed)
             result_name = result['name']
             logging.info(f'Showing result: {result_name}')
             logging.debug(f'Full body:\n{pformat(result)}')
@@ -111,5 +114,5 @@ class SearchCog(commands.Cog, name='Search'):
             result_name = result['name']
             logging.error(f'Error processing "{result_name}" for query "{query}"')
             await user.send(f'Query = `{query}`\nCard pulled = {result_name}\n```{trace}```')
-            await channel.send(f'Sorry, some internal error occurred. I\'m still in testing but don\'t worry, I just '
-                               f'pinged my author with the details so this will be fixed soon!')
+            await message.channel.send(f'Sorry, some internal error occurred. I\'m still in testing but don\'t worry, '
+                                       f'I just pinged my author with the details so this will be fixed soon!')
