@@ -3,6 +3,8 @@ import re
 import traceback
 # noinspection PyPackageRequirements
 from discord.ext import commands
+from discord.ext.commands import CommandInvokeError
+
 from modules import database, messages
 from pprint import pformat
 
@@ -34,6 +36,14 @@ def get_queries(message_content):
     angular_queries = [q for q in angular_queries if not discord_item(q)]
     # Remove duplicates and return
     return list(dict.fromkeys(curly_queries + angular_queries))
+
+
+async def delete_message(context):
+    try:
+        await delete_message(context)
+    except CommandInvokeError as e:
+        logging.error(f'Error deleting message "{context.message}"', e)
+        await context.send('I need permission to delete this message, it\'s not safe to keep it around!')
 
 
 class SearchCog(commands.Cog, name='Search'):
@@ -81,14 +91,14 @@ class SearchCog(commands.Cog, name='Search'):
 
     @commands.command(hidden=True)
     async def update_db(self, context):
-        await context.message.delete()
+        await delete_message(context)
         await context.send('Checking for database updates...')
         await database.check_updates()
         await context.send('Database updated!')
 
     @commands.command(hidden=True)
     async def rebuild_db(self, context):
-        await context.message.delete()
+        await delete_message(context)
         await context.send('Deleting all database...')
         await database.clean_md5s()
         await database.check_updates()
