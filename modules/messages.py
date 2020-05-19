@@ -42,44 +42,53 @@ def get_skill_embed(skill):
 
 
 async def get_card_desc(card, status):
-    desc = f'**Forbidden Status**: __{status}__\n'
-
-    if 'archetype' in card:
-        archetype = card['archetype']
-        desc = desc + f'**Archetype**: {archetype} '
-
-    rarity = card['rarity'] if 'rarity' in card else 'Unavailable'
-    desc = desc + f'**Rarity**: {rarity}'
-
-    if 'release' in card:
-        release = card['release'] if 'release' in card else 'Not released yet'
-        desc = desc + f' **Released**: {release}'
-
-    card_type = card['type']
+    desc = ''
     race = card['race']
-    type_text = f'{card_type}/{race}'
-    desc = desc + f'\n**Type**: {type_text}'
 
     if 'Monster' in card['type']:
+        # Attribute
         attribute = card['attribute']
-        desc = desc + f' **Attribute**: {attribute}'
+        desc = desc + f'**Attribute**: {attribute}'
 
+        # Level
         if 'level' in card:
             level = card['level']
-            desc = desc + f'\n**Level**: {level}'
+            if 'XYZ' in card['type']:
+                desc = desc + f' **Rank**: {level}'
+            else:
+                desc = desc + f' **Level**: {level}'
         elif 'linkval' in card:
             linkval = card['linkval']
-            desc = desc + f'\n**Link Val**: {linkval}'
+            desc = desc + f' **Link Val**: {linkval}'
 
+        # Type
+        type_text = race
+        card_type = card['type'].replace(' Monster', '').replace('Normal', '').strip().replace(' ', '/')
+        if card_type:
+            type_text = type_text + f'/{card_type}'
+        desc = desc + f'\n**Type**: {type_text}'
+
+        # Atk/Def
         attack = card['atk']
         desc = desc + f' **ATK**: {attack}'
 
         if 'def' in card:
             defense = card['def']
             desc = desc + f' **DEF**: {defense}'
+    else:
+        # Type
+        card_type = card['type'].replace(' Card', '')
+        type_text = f'{card_type}/{race}'
+        desc = desc + f'\n**Type**: {type_text}'
 
+    # How to obtain
     how = ', '.join(card['how']) if 'how' in card else 'Unavailable'
     desc = desc + f'\n**How to Obtain**: {how}'
+
+    # Release date
+    if 'release' in card:
+        release = card['release'] if 'release' in card else 'Not released yet'
+        desc = desc + f'\n**Released**: {release}'
 
     return desc
 
