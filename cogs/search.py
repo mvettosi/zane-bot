@@ -2,6 +2,7 @@ import logging
 import re
 import traceback
 # noinspection PyPackageRequirements
+from discord import Forbidden
 from discord.ext import commands
 from discord.ext.commands import CommandInvokeError
 
@@ -40,14 +41,15 @@ def get_queries(message_content):
 
 async def delete_message(context):
     try:
-        await delete_message(context)
-    except CommandInvokeError as e:
-        logging.error(f'Error deleting message "{context.message}"', e)
+        await context.message.delete()
+    except Forbidden:
+        logging.error(f'Error deleting message "{context.message}"')
         await context.send('I need permission to delete this message, it\'s not safe to keep it around!')
 
 
 class SearchCog(commands.Cog, name='Search'):
     """Commands related to searching cards and skills"""
+
     def __init__(self, bot):
         self.bot = bot
 
