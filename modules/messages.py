@@ -3,9 +3,9 @@ import logging
 import aiohttp
 import discord
 from discord import Colour
-from modules.config import EMOTES, COLORS
-from modules import database
 
+from modules import database
+from modules.config import COLORS
 
 CARD_ANNOTATOR_URL = 'https://dl-card-annotator.paas.drackmord.space'
 
@@ -95,7 +95,7 @@ async def get_card_thumbnail_url(card, status):
             result = f'https://www.duellinksmeta.com/{custom_url}'
         elif 'konami_id' in card:
             konami_id = card['konami_id']
-            result = f'https://images.weserv.nl/?url=https://www.konami.com/yugioh/duel_links/en/box/cards/en/{konami_id}.jpg'
+            result = f'https://www.konami.com/yugioh/duel_links/en/box/cards/en/{konami_id}.jpg'
         elif 'card_images' in card:
             result = card['card_images'][0]['image_url']
 

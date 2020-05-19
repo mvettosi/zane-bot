@@ -7,3 +7,4 @@ events/__pycache__
 data/db.json
 env.list
 tmp/
+*.env

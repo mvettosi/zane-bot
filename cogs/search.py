@@ -76,20 +76,23 @@ class SearchCog(commands.Cog, name='Search'):
                 await self.show_result(message.channel, query, result_list[0])
 
     @commands.command(hidden=True)
-    async def match(self, context):
-        await context.send('match')
+    async def match(self, context, *, args=''):
+        await context.send(f'(Work in progress) Searching for `{args}`')
 
     @commands.command(hidden=True)
     async def update_db(self, context):
+        await context.message.delete()
         await context.send('Checking for database updates...')
         await database.check_updates()
         await context.send('Database updated!')
 
     @commands.command(hidden=True)
     async def rebuild_db(self, context):
+        await context.message.delete()
         await context.send('Deleting all database...')
         await database.clean_md5s()
-        await self.update_db(context)
+        await database.check_updates()
+        await context.send('Database rebuilt!')
 
     async def show_result(self, channel, query, result):
         logging.info('')
