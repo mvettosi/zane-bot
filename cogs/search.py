@@ -63,6 +63,8 @@ class SearchCog(commands.Cog, name='Search'):
             return
         if message.author.bot:
             return
+        if message.mention_everyone:
+            return
 
         if self.bot.user.mentioned_in(message):
             await message.channel.send(BOT_INFORMATION)
