@@ -152,3 +152,7 @@ async def update_card(card):
 
 async def clean_md5s():
     await db.md5.delete_many({})
+
+
+async def get_authorisation(user_id):
+    return await db.updaters.find_one({'discord_id': user_id})
