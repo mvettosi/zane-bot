@@ -67,8 +67,9 @@ class SearchCog(commands.Cog, name='Search'):
         await self.process_info_request(message)
         await self.process_card_query(message)
 
-    @commands.command(hidden=True)
+    @commands.command()
     async def match(self, context, *, args=''):
+        """Command used to perform a word search to find a particular card"""
         results = await database.search(args, match_type=True)
         if results:
             await self.process_match(context, args, results)
@@ -77,6 +78,7 @@ class SearchCog(commands.Cog, name='Search'):
 
     @commands.command(hidden=True)
     async def update_db(self, context):
+        """Performs a database update, re-downloading data from ygopro and dlm and checking if there are updates"""
         user_authorisation = await database.get_authorisation(str(context.message.author.id))
         if user_authorisation and user_authorisation['can_update']:
             await context.send('Checking for database updates...')
@@ -87,6 +89,8 @@ class SearchCog(commands.Cog, name='Search'):
 
     @commands.command(hidden=True)
     async def rebuild_db(self, context):
+        """Performs a database rebuild, re-downloading data from ygopro and dlm and inserting a fresh new copy of
+        everything """
         user_authorisation = await database.get_authorisation(str(context.message.author.id))
         if user_authorisation and user_authorisation['can_rebuild']:
             await context.send('Deleting all database...')
