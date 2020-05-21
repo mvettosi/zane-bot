@@ -100,8 +100,8 @@ class SearchCog(commands.Cog, name='Search'):
         results = await database.search(args, match_type=True)
         page = 0
         page_max = math.ceil(len(results) / 10)
-        message_content = messages.get_search_result(results, page=page)
-        message = await context.send(message_content)
+        embed = messages.get_search_result(results, page=page, query=args)
+        message = await context.send(embed=embed)
         for button in messages.CARD_BUTTONS:
             await message.add_reaction(button)
         wait_for_decision = True
@@ -126,8 +126,8 @@ class SearchCog(commands.Cog, name='Search'):
                         page = page - 1
                     elif page < page_max - 1:
                         page = page + 1
-                    message_content = messages.get_search_result(results, page=page)
-                    await message.edit(content=message_content)
+                    embed = messages.get_search_result(results, page=page, query=args)
+                    await message.edit(embed=embed)
             except asyncio.exceptions.TimeoutError:
                 await message.clear_reactions()
                 wait_for_decision = False

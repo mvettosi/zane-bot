@@ -186,14 +186,18 @@ async def get_embed(result):
         return await get_card_embed(result)
 
 
-def get_search_result(results, page):
+def get_search_result(results, page, query):
     first_index = page * 10
     last_index = first_index + 10 if first_index + 10 < len(results) else len(results)
-    result = f'Page `{page + 1}` of `{math.ceil(len(results) / 10)}`, results `{first_index + 1} - {last_index + 1}`'
+    title = f'Results for {query}' if query else 'Search results'
+    desc = f'Page `{page + 1}` of `{math.ceil(len(results) / 10)}`, results `{first_index + 1} - {last_index + 1}`'
+    color = Colour.light_grey()
+    embed = discord.Embed(title=title, description=desc, color=color)
     for index in range(first_index, last_index):
         entry = results[index]
         button = CARD_BUTTONS[index % 10]
         name = entry['name']
-        entry_type = '`Skill`' if 'exclusive' in entry else '`Card `'
-        result = result + f'\n{button} {entry_type} {name}'
-    return result
+        entry_type = 'Skill' if 'exclusive' in entry else 'Card'
+        entry_text = f'{button} {name}'
+        embed.add_field(name=entry_type, value=entry_text, inline=False)
+    return embed
