@@ -1,4 +1,6 @@
+import asyncio
 import logging
+import math
 import re
 import traceback
 # noinspection PyPackageRequirements
@@ -47,6 +49,10 @@ async def delete_message(context):
         await context.send('I need permission to delete this message, it\'s not safe to keep it around!')
 
 
+def change_page(button_index, page, page_max):
+    return (button_index == 10 and page > 0) or (button_index == 11 and page < page_max)
+
+
 class SearchCog(commands.Cog, name='Search'):
     """Commands related to searching cards and skills"""
 
@@ -91,7 +97,40 @@ class SearchCog(commands.Cog, name='Search'):
 
     @commands.command(hidden=True)
     async def match(self, context, *, args=''):
-        await context.send(f'(Work in progress) Searching for `{args}`')
+        results = await database.search(args, match_type=True)
+        page = 0
+        page_max = math.ceil(len(results) / 10)
+        message_content = messages.get_search_result(results, page=page)
+        message = await context.send(message_content)
+        for button in messages.CARD_BUTTONS:
+            await message.add_reaction(button)
+        wait_for_decision = True
+        while wait_for_decision:
+            def check(reaction_to_check, user_to_check):
+                return user_to_check == context.message.author and str(reaction_to_check.emoji) in messages.CARD_BUTTONS
+
+            try:
+                reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
+                await message.remove_reaction(reaction, user)
+                button_index = messages.CARD_BUTTONS_BY_INDEX[reaction.emoji]
+                if button_index < 10:
+                    result_index = button_index + (page * 10)
+                    if result_index < len(results):
+                        wait_for_decision = False
+                        await message.clear_reactions()
+                        card = await database.get_card(results[result_index]['_id'])
+                        card_embed = await messages.get_embed(card)
+                        await message.edit(embed=card_embed)
+                elif change_page(button_index, page, page_max):
+                    if button_index == 10 and page > 0:
+                        page = page - 1
+                    elif page < page_max - 1:
+                        page = page + 1
+                    message_content = messages.get_search_result(results, page=page)
+                    await message.edit(content=message_content)
+            except asyncio.exceptions.TimeoutError:
+                await message.clear_reactions()
+                wait_for_decision = False
 
     @commands.command(hidden=True)
     async def update_db(self, context):
@@ -113,7 +152,8 @@ class SearchCog(commands.Cog, name='Search'):
         server_name = message.channel.guild.name
         channel_name = message.channel.name
         author_name = message.author.name
-        logging.info(f'{server_name}, #{channel_name}, {author_name}, query: {query}')
+        debug_info = f'`{server_name}`, `#{channel_name}`, `{author_name}`, query: `{query}`'
+        logging.info(debug_info)
         try:
             result_embed = await messages.get_embed(result)
             await message.channel.send(embed=result_embed)
@@ -127,6 +167,6 @@ class SearchCog(commands.Cog, name='Search'):
                 trace = trace[0:2000]
             result_name = result['name']
             logging.error(f'Error processing "{result_name}" for query "{query}"')
-            await user.send(f'Query = `{query}`\nCard pulled = {result_name}\n```{trace}```')
+            await user.send(f'{debug_info}\nCard pulled = {result_name}\n```{trace}```')
             await message.channel.send(f'Sorry, some internal error occurred. I\'m still in testing but don\'t worry, '
                                        f'I just pinged my author with the details so this will be fixed soon!')

@@ -1,4 +1,5 @@
 import logging
+import math
 
 import aiohttp
 import discord
@@ -8,6 +9,21 @@ from modules import database
 from modules.config import COLORS
 
 CARD_ANNOTATOR_URL = 'https://dl-card-annotator.paas.drackmord.space'
+CARD_BUTTONS = [
+    '\U0001f1e6',  # A
+    '\U0001f1e7',  # B
+    '\U0001f1e8',  # C
+    '\U0001f1e9',  # D
+    '\U0001f1ea',  # E
+    '\U0001f1eb',  # F
+    '\U0001f1ec',  # G
+    '\U0001f1ed',  # H
+    '\U0001f1ee',  # I
+    '\U0001f1ef',  # J
+    '\U000023ee',  # PREV
+    '\U000023ed',  # NEXT
+]
+CARD_BUTTONS_BY_INDEX = dict((e, i) for (i, e) in enumerate(CARD_BUTTONS))
 
 
 def is_skill(result):
@@ -168,3 +184,16 @@ async def get_embed(result):
         return get_skill_embed(result)
     else:
         return await get_card_embed(result)
+
+
+def get_search_result(results, page):
+    first_index = page * 10
+    last_index = first_index + 10 if first_index + 10 < len(results) else len(results)
+    result = f'Page `{page + 1}` of `{math.ceil(len(results) / 10)}`, results `{first_index + 1} - {last_index + 1}`'
+    for index in range(first_index, last_index):
+        entry = results[index]
+        button = CARD_BUTTONS[index % 10]
+        name = entry['name']
+        entry_type = '`Skill`' if 'exclusive' in entry else '`Card `'
+        result = result + f'\n{button} {entry_type} {name}'
+    return result

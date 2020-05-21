@@ -102,7 +102,7 @@ async def check_updates():
             f'Update took {elapsed_minutes} minutes and {elapsed_seconds} seconds')
 
 
-async def search(query, how_many, exact=False):
+async def search(query, how_many=None, exact=False, match_type=False):
     enforce_token = None
     if query and query[0] in [FORCE_CARD, FORCE_SKILL]:
         # extract enforce token
@@ -126,9 +126,16 @@ async def search(query, how_many, exact=False):
         }
 
     projection = {'score': {'$meta': "textScore"}}
+    if match_type:
+        projection['name'] = 1
+        projection['exclusive'] = 1
     sorting = [('score', {'$meta': 'textScore'})]
 
     return await db.data.find(search_filter, projection).sort(sorting).to_list(length=how_many)
+
+
+async def get_card(card_id):
+    return await db.data.find_one({"_id": card_id})
 
 
 async def get_forbidden_status(card_name):
