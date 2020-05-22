@@ -38,7 +38,9 @@ def get_queries(message_content):
     # Remove fake queries from discord special items (emotes/mentions/channels)
     angular_queries = [q for q in angular_queries if not discord_item(q)]
     # Remove duplicates and return
-    return list(dict.fromkeys(curly_queries + angular_queries))
+    all_queries = list(dict.fromkeys(curly_queries + angular_queries))
+    # Remove empty queries
+    return [query.strip() for query in all_queries if query.strip()]
 
 
 def change_page(button_index, page, page_max):
