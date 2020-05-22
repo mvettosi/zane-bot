@@ -69,7 +69,15 @@ class SearchCog(commands.Cog, name='Search'):
 
     @commands.command()
     async def match(self, context, *, args=''):
-        """Command used to perform a word search to find a particular card"""
+        """Command used to perform a word search and browse the found matches
+
+        Usage: `.match <words to include in the search>`
+
+        Fuzzy search is not supported yet, so for example a word like "boobytrap" won't match a card containing \
+        "Booby Trap".
+
+        Just like single card search, however, you can use single (correctly spelled) words in any order, and the bot \
+        will use them to find cards and skills for you to choose from."""
         results = await database.search(args, match_type=True)
         if results:
             await self.process_match(context, args, results)
