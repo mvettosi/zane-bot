@@ -40,11 +40,13 @@ async def load_json_file(file_type, file_path):
     elif file_type in [FileType.DL, FileType.EXCLUSIVE]:
         requests = []
         for dl_card in data_json:
+            update = {"$set": dl_card}
             if file_type is FileType.DL:
+                # update['$unset'] = {'annotated_url': 1}
                 dl_card.pop('type', None)
             card_name = dl_card['name']
             requests.append(
-                UpdateOne(filter={"name": card_name, "exclusive": {"$exists": False}}, update={"$set": dl_card},
+                UpdateOne(filter={"name": card_name, "exclusive": {"$exists": False}}, update=update,
                           upsert=True))
         await db.data.bulk_write(requests)
 
@@ -92,6 +94,7 @@ async def check_updates():
             if file_type == FileType.TCG:
                 await insert_md5(FileType.DL, '')
                 await insert_md5(FileType.EXCLUSIVE, '')
+                await insert_md5(FileType.EXCLUSIVE_IMG, '')
         else:
             logging.info(
                 f'File {file_type.name} is still at the newest version')

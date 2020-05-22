@@ -37,9 +37,9 @@ def get_queries(message_content):
     angular_queries = re.findall(r'(?<=<)([^<>]*?)(?=>)', message_content)
     # Remove fake queries from discord special items (emotes/mentions/channels)
     angular_queries = [q for q in angular_queries if not discord_item(q)]
-    # Remove duplicates and return
+    # Remove duplicates
     all_queries = list(dict.fromkeys(curly_queries + angular_queries))
-    # Remove empty queries
+    # Remove empty queries and return
     return [query.strip() for query in all_queries if query.strip()]
 
 
