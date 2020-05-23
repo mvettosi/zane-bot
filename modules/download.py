@@ -1,12 +1,17 @@
+import hashlib
+import logging
 import os
 import shutil
-
-import aiohttp
-import logging
-import hashlib
 from enum import Enum
 
+import aiohttp
+
 DOWNLOAD_FOLDER = 'tmp'
+
+
+class HttpMethod(Enum):
+    GET = 1
+    POST = 2
 
 
 class FileType(Enum):
@@ -39,3 +44,14 @@ async def download(file_type):
             else:  # HTTP status code 4XX/5XX
                 logging.error(f'Download failed: status code {resp.status}\n{resp.text()}')
 
+
+async def json(url, method, request=None):
+    logging.info(f'{method.name}ing url: {url}')
+    if request:
+        logging.info(f'Request body: {request}')
+    async with aiohttp.ClientSession() as cs:
+        call = cs.get(url) if method is HttpMethod.GET else cs.post(url, json=request)
+        async with call as r:
+            response = await r.json()
+            logging.info(f'Received response: {response}')
+            return response

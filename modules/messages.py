@@ -1,11 +1,11 @@
 import logging
 import math
+from itertools import groupby
 
-import aiohttp
 import discord
 from discord import Colour
 
-from modules import database
+from modules import database, download, config
 from modules.config import COLORS
 
 CARD_ANNOTATOR_URL = 'https://dl-card-annotator.paas.drackmord.space'
@@ -47,7 +47,7 @@ def get_skill_embed(skill):
     desc = f'''
         **Characters**: {chars}
         **How to Obtain**: {hows}'''
-    color = Colour.light_grey()
+    color = config.BOT_COLOR
     thumbnail_url = get_skill_thumbnail_url(skill)
     skill_text = skill['description']
 
@@ -129,15 +129,16 @@ async def get_card_thumbnail_url(card, status):
             request = {'url': result, 'rarity': card['rarity']}
             if status.startswith('Limited'):
                 request['limit'] = status[-1]
-            logging.info(f'Sending request with {request}')
-            async with aiohttp.ClientSession() as cs:
-                async with cs.post(CARD_ANNOTATOR_URL, json=request) as r:
-                    response = await r.json()
-                    logging.info(f'Received response: {response}')
-                    if response and 'url' in response and response['url']:
-                        result = response['url']
-                        card['annotated_url'] = result
-                        await database.update_card(card)
+            response = await download.json(CARD_ANNOTATOR_URL, download.HttpMethod.POST, request)
+            # logging.info(f'Sending request with {request}')
+            # async with aiohttp.ClientSession() as cs:
+            #     async with cs.post(CARD_ANNOTATOR_URL, json=request) as r:
+            #         response = await r.json()
+            #         logging.info(f'Received response: {response}')
+            if response and 'url' in response and response['url']:
+                result = response['url']
+                card['annotated_url'] = result
+                await database.update_card(card)
         else:
             logging.info('Using non-annotated image')
 
@@ -201,3 +202,29 @@ def get_search_result(results, page, query):
         entry_text = f'{button} {name}'
         embed.add_field(name=entry_type, value=entry_text, inline=False)
     return embed
+
+
+def get_ladder(ladder, page):
+    first_index = page * 10
+    last_index = first_index + 10 if first_index + 10 < len(ladder) else len(ladder)
+    title = ''
+
+
+def get_tpc(ladder):
+    title = 'Top Player Council current candidates'
+    result = discord.Embed(title=title, color=config.BOT_COLOR)
+    ladder_sorted = sorted(ladder, reverse=True, key=lambda key: key['total_points'])
+    rank = 0
+    for k, v in groupby(ladder_sorted, key=lambda x: x['total_points']):
+        players = list(v)
+        rank = rank + 1
+        if rank <= 16:
+            rank_text = f'Rank {rank}'
+            if len(players) > 1:
+                rank = rank + len(players) - 1
+                rank_text = f'{rank_text}-{rank}'
+            rank_desc = '\n'.join(['`' + p['name'] + '` (' + str(p['total_points']) + ' points)' for p in players])
+            result.add_field(name=rank_text, value=rank_desc)
+        else:
+            break
+    return result
