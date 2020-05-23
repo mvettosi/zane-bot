@@ -36,22 +36,9 @@ class DlmCog(commands.Cog, name='DLM'):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    async def ladder(self, context, subcommand='total'):
-        """Command to display and navigate the current Duel Links Meta player ladder
-
-        By default results are ordered by total points descending, and the candidates for the next Top Player Council are \
-        highlighted.
-
-        Optional subcommands are:
-        `.ladder total`: same as `.ladder`
-        `.ladder tpc`: only shows the names of the next season's Top Player Council current candidates, without pagination
-        `.ladder anytimes`: order the list by anytime points only"""
+    @commands.command(name='tpc-ladder', aliases=['tpcladder', 'tpcnext', 'tpc-next'])
+    async def tpcladder(self, context):
+        """Command to display the names of the next season's Top Player Council current candidates"""
         ladder = await get_ladder()
-        if subcommand == 'tpc':
-            result = messages.get_tpc(ladder['players'])
-            await context.send(embed=result)
-        elif subcommand == 'total':
-            await process_ladder(context, sort_by='total_points')
-        elif subcommand == 'anytimes':
-            await process_ladder(context, sort_by='anytime_points')
+        result = messages.get_tpc(ladder['players'])
+        await context.send(embed=result)

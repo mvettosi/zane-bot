@@ -5,6 +5,9 @@ from modules import config
 
 
 class CustomHelpCommand(commands.HelpCommand):
+    def get_command_signature(self, command):
+        return self.clean_prefix + f' | {self.clean_prefix}'.join([command.name] + command.aliases)
+
     async def send_bot_help(self, mapping):
         title = self.context.bot.description if self.context.bot.description else 'Zane Bot Commands'
         desc = f"Type `{self.clean_prefix}{self.invoked_with} command` for more info on a command.\n" \
@@ -36,5 +39,6 @@ class CustomHelpCommand(commands.HelpCommand):
 
     async def send_command_help(self, command):
         title = f'Command: {command.name}'
-        embed = discord.Embed(title=title, description=command.help, colour=config.BOT_COLOR)
+        desc = command.help + f'\n\nAlso usable with: `{self.clean_prefix}' + f'`, `{self.clean_prefix}'.join(command.aliases) + '`'
+        embed = discord.Embed(title=title, description=desc, colour=config.BOT_COLOR)
         await self.get_destination().send(embed=embed)
