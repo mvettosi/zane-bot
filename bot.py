@@ -17,7 +17,7 @@ COGS_DIR = 'cogs'
 
 
 logging.basicConfig(level=logging.INFO)
-# logging.getLogger("discord").setLevel(logging.WARNING)
+logging.getLogger("discord").setLevel(logging.DEBUG)
 help_command = CustomHelpCommand(no_category='Others', commands_heading='commands:')
 bot = commands.Bot(command_prefix=config.BOT_PREFIX, description=config.BOT_DESC, help_command=help_command)
 
