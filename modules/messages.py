@@ -33,7 +33,7 @@ def is_skill(result):
 def get_skill_thumbnail_url(skill):
     char = 'vagabond'
     if skill['exclusive']:
-        char = skill['characters'][0]['name'].lower().replace(' ', '-')
+        char = skill['characters'][0]['name'].lower().replace(' ', '-').replace('(', '').replace(')', '')
     return f'https://www.duellinksmeta.com/img/characters/{char}/portrait.png'
 
 
