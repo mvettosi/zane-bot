@@ -24,6 +24,12 @@ CARD_BUTTONS = [
     '\U000023ed',  # NEXT
 ]
 CARD_BUTTONS_BY_INDEX = dict((e, i) for (i, e) in enumerate(CARD_BUTTONS))
+PREV_BUTTON_INDEX = 10
+NEXT_BUTTON_INDEX = 11
+MATCH_PAGE_SIZE = 10
+
+PREV_BUTTON = '\U000023ee'
+NEXT_BUTTON = '\U000023ed'
 
 
 def is_skill(result):
@@ -188,12 +194,11 @@ async def get_embed(result):
 
 
 def get_search_result(results, page, query):
-    first_index = page * 10
-    last_index = first_index + 10 if first_index + 10 < len(results) else len(results)
+    first_index = page * MATCH_PAGE_SIZE
+    last_index = first_index + MATCH_PAGE_SIZE if first_index + MATCH_PAGE_SIZE < len(results) else len(results)
     title = f'Results for {query}' if query else 'Search results'
-    desc = f'Page `{page + 1}` of `{math.ceil(len(results) / 10)}`, results `{first_index + 1} - {last_index + 1}`'
-    color = Colour.light_grey()
-    embed = discord.Embed(title=title, description=desc, color=color)
+    desc = f'Page `{page + 1}` of `{math.ceil(len(results) / MATCH_PAGE_SIZE)}`, results `{first_index + 1} - {last_index + 1}`'
+    embed = discord.Embed(title=title, description=desc, color=config.BOT_COLOR)
     for index in range(first_index, last_index):
         entry = results[index]
         button = CARD_BUTTONS[index % 10]
@@ -204,27 +209,19 @@ def get_search_result(results, page, query):
     return embed
 
 
-def get_ladder(ladder, page):
-    first_index = page * 10
-    last_index = first_index + 10 if first_index + 10 < len(ladder) else len(ladder)
-    title = ''
-
-
-def get_tpc(ladder):
-    title = 'Top Player Council current candidates'
+def get_ladder_page(players):
+    title = 'Duel Links Meta Top Player Ladder'
     result = discord.Embed(title=title, color=config.BOT_COLOR)
-    ladder_sorted = sorted(ladder, reverse=True, key=lambda key: key['total_points'])
-    rank = 0
-    for k, v in groupby(ladder_sorted, key=lambda x: x['total_points']):
-        players = list(v)
-        rank = rank + 1
-        if rank <= 16:
-            rank_text = f'Rank {rank}'
-            if len(players) > 1:
-                rank = rank + len(players) - 1
-                rank_text = f'{rank_text}-{rank}'
-            rank_desc = '\n'.join(['`' + p['name'] + '` (' + str(p['total_points']) + ' points)' for p in players])
-            result.add_field(name=rank_text, value=rank_desc)
-        else:
-            break
+    for player_group in players:
+        rank_min = player_group['rank_min']
+        rank_max = player_group['rank_max']
+        # if rank_min > 16:
+        #     break
+        rank_text = f'Rank {rank_min}' if rank_min == rank_max else f'Rank {rank_min}-{rank_max}'
+        if rank_min <= 16:
+            rank_text += ' (new TPC)'
+        rank_desc = '\n'.join([
+            '`' + p['name'] + '` (' + str(p['total_points']) + ' points)' for p in player_group['players']
+        ])
+        result.add_field(name=rank_text, value=rank_desc)
     return result

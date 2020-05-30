@@ -39,6 +39,9 @@ class CustomHelpCommand(commands.HelpCommand):
 
     async def send_command_help(self, command):
         title = f'Command: {command.name}'
-        desc = command.help + f'\n\nAlso usable with: `{self.clean_prefix}' + f'`, `{self.clean_prefix}'.join(command.aliases) + '`'
+        desc = command.help
+        if command.aliases:
+            desc = f'{desc}\n\nAlso usable with: `{self.clean_prefix}' \
+                   + f'`, `{self.clean_prefix}'.join(command.aliases) + '`'
         embed = discord.Embed(title=title, description=desc, colour=config.BOT_COLOR)
         await self.get_destination().send(embed=embed)

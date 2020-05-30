@@ -11,6 +11,8 @@ from discord.ext.commands import CommandInvokeError
 from modules import database, messages
 from pprint import pformat
 
+from modules.messages import PREV_BUTTON_INDEX, NEXT_BUTTON_INDEX, MATCH_PAGE_SIZE
+
 BOT_INFORMATION = ('I am a Yu-Gi-Oh! Duel Links card bot made by [CwC] Drackmord#9541.'
                    '\n\nTo search cards and skills, simply add their name or part of their name in curly brackets, '
                    'like for example `{blue-eyes white dragon}` or `{no mortal can resist}`.'
@@ -44,7 +46,7 @@ def get_queries(message_content):
 
 
 def change_page(button_index, page, page_max):
-    return (button_index == 10 and page > 0) or (button_index == 11 and page < page_max)
+    return (button_index == PREV_BUTTON_INDEX and page > 0) or (button_index == NEXT_BUTTON_INDEX and page < page_max)
 
 
 def get_no_result_message(query):
@@ -160,7 +162,7 @@ class SearchCog(commands.Cog, name='Search'):
 
     async def process_match(self, context, args, results):
         page = 0
-        page_max = math.ceil(len(results) / 10)
+        page_max = math.ceil(len(results) / MATCH_PAGE_SIZE)
         embed = messages.get_search_result(results, page=page, query=args)
         message = await context.send(embed=embed)
         wait_for_decision = True
@@ -175,8 +177,8 @@ class SearchCog(commands.Cog, name='Search'):
                 reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
                 await message.remove_reaction(reaction, user)
                 button_index = messages.CARD_BUTTONS_BY_INDEX[reaction.emoji]
-                if button_index < 10:
-                    result_index = button_index + (page * 10)
+                if button_index < PREV_BUTTON_INDEX:
+                    result_index = button_index + (page * MATCH_PAGE_SIZE)
                     if result_index < len(results):
                         wait_for_decision = False
                         await message.clear_reactions()
@@ -184,7 +186,7 @@ class SearchCog(commands.Cog, name='Search'):
                         card_embed = await messages.get_embed(card)
                         await message.edit(embed=card_embed)
                 elif change_page(button_index, page, page_max):
-                    if button_index == 10 and page > 0:
+                    if button_index == PREV_BUTTON_INDEX and page > 0:
                         page = page - 1
                     elif page < page_max - 1:
                         page = page + 1
