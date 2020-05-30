@@ -40,6 +40,6 @@ class Paginator:
         return self.get_page()
 
     def next_page(self):
-        if self.current_page < self.pages_number():
+        if self.current_page < self.pages_number() - 1:
             self.current_page += 1
         return self.get_page()

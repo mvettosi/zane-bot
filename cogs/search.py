@@ -3,14 +3,12 @@ import logging
 import math
 import re
 import traceback
-# noinspection PyPackageRequirements
-from discord import Forbidden
-from discord.ext import commands
-from discord.ext.commands import CommandInvokeError
-
-from modules import database, messages
 from pprint import pformat
 
+# noinspection PyPackageRequirements
+from discord.ext import commands
+
+from modules import database, messages
 from modules.messages import PREV_BUTTON_INDEX, NEXT_BUTTON_INDEX, MATCH_PAGE_SIZE
 
 BOT_INFORMATION = ('I am a Yu-Gi-Oh! Duel Links card bot made by [CwC] Drackmord#9541.'
@@ -170,7 +168,8 @@ class SearchCog(commands.Cog, name='Search'):
             await message.add_reaction(button)
 
         def check(reaction_to_check, user_to_check):
-            return user_to_check == context.message.author and str(reaction_to_check.emoji) in messages.CARD_BUTTONS
+            return user_to_check == context.message.author and str(reaction_to_check.emoji) in messages.CARD_BUTTONS \
+                   and reaction_to_check.message.id == message.id
 
         while wait_for_decision:
             try:

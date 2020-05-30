@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 from enum import Enum
+from json import dumps
 
 import aiohttp
 
@@ -53,5 +54,5 @@ async def json(url, method, request=None):
         call = cs.get(url) if method is HttpMethod.GET else cs.post(url, json=request)
         async with call as r:
             response = await r.json()
-            logging.info(f'Received response: {response}')
+            logging.info(f'Received response: {dumps(response)}')
             return response

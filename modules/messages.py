@@ -1,5 +1,6 @@
 import logging
 import math
+from enum import Enum
 from itertools import groupby
 
 import discord
@@ -209,19 +210,24 @@ def get_search_result(results, page, query):
     return embed
 
 
-def get_ladder_page(players):
-    title = 'Duel Links Meta Top Player Ladder'
+def get_ladder_page(players, ladder_type, page_num, page_max):
+    title = f'Duel Links Meta {ladder_type.value} Ladder (Page {page_num + 1} of {page_max})'
     result = discord.Embed(title=title, color=config.BOT_COLOR)
     for player_group in players:
         rank_min = player_group['rank_min']
         rank_max = player_group['rank_max']
-        # if rank_min > 16:
-        #     break
         rank_text = f'Rank {rank_min}' if rank_min == rank_max else f'Rank {rank_min}-{rank_max}'
-        if rank_min <= 16:
+        if rank_min <= 16 and ladder_type is LadderType.TOP_PLAYER:
             rank_text += ' (new TPC)'
+        rank_system = 'points' if ladder_type is LadderType.TOP_PLAYER else 'wins'
+        rank_key = 'total_points' if ladder_type is LadderType.TOP_PLAYER else 'wins'
         rank_desc = '\n'.join([
-            '`' + p['name'] + '` (' + str(p['total_points']) + ' points)' for p in player_group['players']
+            '`' + p['name'] + '` (' + str(p[rank_key]) + f' {rank_system})' for p in player_group['players']
         ])
         result.add_field(name=rank_text, value=rank_desc)
     return result
+
+
+class LadderType(Enum):
+    TOP_PLAYER = 'Top Player'
+    ANYTIME = 'Anytime'
