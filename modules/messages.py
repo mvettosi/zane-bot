@@ -1,13 +1,11 @@
 import logging
-import math
 from enum import Enum
-from itertools import groupby
 
 import discord
-from discord import Colour
 
 from modules import database, download, config
 from modules.config import COLORS
+from modules.pagination import Paginator
 
 CARD_ANNOTATOR_URL = 'https://dl-card-annotator.paas.drackmord.space'
 CARD_BUTTONS = [
@@ -21,16 +19,14 @@ CARD_BUTTONS = [
     '\U0001f1ed',  # H
     '\U0001f1ee',  # I
     '\U0001f1ef',  # J
-    '\U000023ee',  # PREV
-    '\U000023ed',  # NEXT
 ]
+PREV_BUTTON = '\U000023ee'
+NEXT_BUTTON = '\U000023ed'
 CARD_BUTTONS_BY_INDEX = dict((e, i) for (i, e) in enumerate(CARD_BUTTONS))
 PREV_BUTTON_INDEX = 10
 NEXT_BUTTON_INDEX = 11
 MATCH_PAGE_SIZE = 10
 
-PREV_BUTTON = '\U000023ee'
-NEXT_BUTTON = '\U000023ed'
 
 
 def is_skill(result):
@@ -194,15 +190,14 @@ async def get_embed(result):
         return await get_card_embed(result)
 
 
-def get_search_result(results, page, query):
-    first_index = page * MATCH_PAGE_SIZE
-    last_index = first_index + MATCH_PAGE_SIZE if first_index + MATCH_PAGE_SIZE < len(results) else len(results)
+def get_search_result(paginator: Paginator, query: str) -> discord.Embed:
+    page = paginator.get_page()
     title = f'Results for {query}' if query else 'Search results'
-    desc = f'Page `{page + 1}` of `{math.ceil(len(results) / MATCH_PAGE_SIZE)}`, results `{first_index + 1} - {last_index + 1}`'
+    desc = f'Page `{paginator.current_page + 1}` of `{paginator.pages_number()}`, ' \
+           f'results `{page.index_start + 1} - {page.index_end + 1}` '
     embed = discord.Embed(title=title, description=desc, color=config.BOT_COLOR)
-    for index in range(first_index, last_index):
-        entry = results[index]
-        button = CARD_BUTTONS[index % 10]
+    for index, entry in enumerate(page.elements):
+        button = CARD_BUTTONS[index]
         name = entry['name']
         entry_type = 'Skill' if 'exclusive' in entry else 'Card'
         entry_text = f'{button} {name}'
@@ -210,10 +205,11 @@ def get_search_result(results, page, query):
     return embed
 
 
-def get_ladder_page(players, ladder_type, page_num, page_max):
-    title = f'Duel Links Meta {ladder_type.value} Ladder (Page {page_num + 1} of {page_max})'
+def get_ladder_page(paginator, ladder_type):
+    title = f'Duel Links Meta {ladder_type.value} Ladder (Page {paginator.current_page + 1} of {paginator.pages_number()})'
     result = discord.Embed(title=title, color=config.BOT_COLOR)
-    for player_group in players:
+    page = paginator.get_page()
+    for player_group in page.elements:
         rank_min = player_group['rank_min']
         rank_max = player_group['rank_max']
         rank_text = f'Rank {rank_min}' if rank_min == rank_max else f'Rank {rank_min}-{rank_max}'

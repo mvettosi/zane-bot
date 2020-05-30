@@ -54,8 +54,7 @@ async def group_players(players, sort_by='total_points'):
 
 
 async def process_players(bot, context, paginator, ladder_type):
-    embed = messages.get_ladder_page(paginator.get_page(), ladder_type, paginator.current_page,
-                                     paginator.pages_number())
+    embed = messages.get_ladder_page(paginator, ladder_type)
     message = await context.send(embed=embed)
     await message.add_reaction(PREV_BUTTON)
     await message.add_reaction(NEXT_BUTTON)
@@ -68,14 +67,12 @@ async def process_players(bot, context, paginator, ladder_type):
         try:
             reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
             await message.remove_reaction(reaction, user)
-            if reaction.emoji == PREV_BUTTON:
-                embed = messages.get_ladder_page(paginator.prev_page(), ladder_type, paginator.current_page,
-                                                 paginator.pages_number())
-                await message.edit(embed=embed)
-            elif reaction.emoji == NEXT_BUTTON:
-                embed = messages.get_ladder_page(paginator.next_page(), ladder_type, paginator.current_page,
-                                                 paginator.pages_number())
-                await message.edit(embed=embed)
+            if reaction.emoji == messages.PREV_BUTTON:
+                paginator.prev_page()
+            elif reaction.emoji == messages.NEXT_BUTTON:
+                paginator.next_page()
+            embed = messages.get_ladder_page(paginator, ladder_type)
+            await message.edit(embed=embed)
         except asyncio.exceptions.TimeoutError:
             await message.clear_reactions()
             break

@@ -1,15 +1,15 @@
 import asyncio
 import logging
-import math
 import re
 import traceback
 from pprint import pformat
 
-# noinspection PyPackageRequirements
 from discord.ext import commands
+from discord.ext.commands import Context
 
 from modules import database, messages
-from modules.messages import PREV_BUTTON_INDEX, NEXT_BUTTON_INDEX, MATCH_PAGE_SIZE
+from modules.messages import PREV_BUTTON_INDEX, NEXT_BUTTON_INDEX
+from modules.pagination import Paginator
 
 BOT_INFORMATION = ('I am a Yu-Gi-Oh! Duel Links card bot made by [CwC] Drackmord#9541.'
                    '\n\nTo search cards and skills, simply add their name or part of their name in curly brackets, '
@@ -20,6 +20,7 @@ BOT_INFORMATION = ('I am a Yu-Gi-Oh! Duel Links card bot made by [CwC] Drackmord
                    ' using `{?destiny draw}`.'
                    '\n\nAs I\'m very new, please don\'t hesitate to mention or pm my creator for bugs or suggestions!')
 AUTHOR_ID = 351861715283214338
+MATCH_PAGE_SIZE = 10
 
 
 def setup(bot):
@@ -41,10 +42,6 @@ def get_queries(message_content):
     all_queries = list(dict.fromkeys(curly_queries + angular_queries))
     # Remove empty queries and return
     return [query.strip() for query in all_queries if query.strip()]
-
-
-def change_page(button_index, page, page_max):
-    return (button_index == PREV_BUTTON_INDEX and page > 0) or (button_index == NEXT_BUTTON_INDEX and page < page_max)
 
 
 def get_no_result_message(query):
@@ -82,7 +79,8 @@ class SearchCog(commands.Cog, name='Search'):
         will use them to find cards and skills for you to choose from."""
         results = await database.search(args, match_type=True)
         if results:
-            await self.process_match(context, args, results)
+            results_paginated = Paginator(results, MATCH_PAGE_SIZE)
+            await self.process_match(context, args, results_paginated)
         else:
             await context.message.channel.send(get_no_result_message(args))
 
@@ -158,38 +156,36 @@ class SearchCog(commands.Cog, name='Search'):
             await message.channel.send(f'Sorry, some internal error occurred. I\'m still in testing but don\'t worry, '
                                        f'I just pinged my author with the details so this will be fixed soon!')
 
-    async def process_match(self, context, args, results):
-        page = 0
-        page_max = math.ceil(len(results) / MATCH_PAGE_SIZE)
-        embed = messages.get_search_result(results, page=page, query=args)
+    async def process_match(self, context: Context, args: str, paginator: Paginator) -> None:
+        embed = messages.get_search_result(paginator, query=args)
         message = await context.send(embed=embed)
         wait_for_decision = True
-        for button in messages.CARD_BUTTONS:
+        all_buttons = messages.CARD_BUTTONS + [messages.PREV_BUTTON, messages.NEXT_BUTTON]
+        for button in all_buttons:
             await message.add_reaction(button)
 
         def check(reaction_to_check, user_to_check):
-            return user_to_check == context.message.author and str(reaction_to_check.emoji) in messages.CARD_BUTTONS \
-                   and reaction_to_check.message.id == message.id
+            return user_to_check == context.message.author and \
+                   str(reaction_to_check.emoji) in all_buttons and \
+                   reaction_to_check.message.id == message.id
 
         while wait_for_decision:
             try:
                 reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
                 await message.remove_reaction(reaction, user)
-                button_index = messages.CARD_BUTTONS_BY_INDEX[reaction.emoji]
-                if button_index < PREV_BUTTON_INDEX:
-                    result_index = button_index + (page * MATCH_PAGE_SIZE)
-                    if result_index < len(results):
-                        wait_for_decision = False
-                        await message.clear_reactions()
-                        card = await database.get_card(results[result_index]['_id'])
-                        card_embed = await messages.get_embed(card)
-                        await message.edit(embed=card_embed)
-                elif change_page(button_index, page, page_max):
-                    if button_index == PREV_BUTTON_INDEX and page > 0:
-                        page = page - 1
-                    elif page < page_max - 1:
-                        page = page + 1
-                    embed = messages.get_search_result(results, page=page, query=args)
+                if reaction.emoji in messages.CARD_BUTTONS:
+                    button_index = messages.CARD_BUTTONS_BY_INDEX[reaction.emoji]
+                    wait_for_decision = False
+                    await message.clear_reactions()
+                    card = await database.get_card(paginator.get_page().elements[button_index]['_id'])
+                    card_embed = await messages.get_embed(card)
+                    await message.edit(embed=card_embed)
+                elif reaction.emoji in [messages.PREV_BUTTON, messages.NEXT_BUTTON]:
+                    if reaction.emoji == messages.PREV_BUTTON:
+                        paginator.prev_page()
+                    elif reaction.emoji == messages.NEXT_BUTTON:
+                        paginator.next_page()
+                    embed = messages.get_search_result(paginator, query=args)
                     await message.edit(embed=embed)
             except asyncio.exceptions.TimeoutError:
                 await message.clear_reactions()
