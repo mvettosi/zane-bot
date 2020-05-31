@@ -24,7 +24,7 @@ class FileType(Enum):
     SKILLS = 'https://www.duellinksmeta.com/data/skills.json'
 
 
-async def download(file_type):
+async def download(file_type: FileType) -> dict:
     shutil.rmtree(DOWNLOAD_FOLDER, ignore_errors=True)
     os.makedirs(DOWNLOAD_FOLDER)
     file_name = f'{file_type.name}.json'
@@ -46,7 +46,7 @@ async def download(file_type):
                 logging.error(f'Download failed: status code {resp.status}\n{resp.text()}')
 
 
-async def json(url, method, request=None):
+async def json(url: str, method: HttpMethod, request=None) -> dict:
     logging.info(f'{method.name}ing url: {url}')
     if request:
         logging.info(f'Request body: {request}')

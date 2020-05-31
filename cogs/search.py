@@ -4,11 +4,11 @@ import re
 import traceback
 from pprint import pformat
 
+from discord import Message
 from discord.ext import commands
-from discord.ext.commands import Context
+from discord.ext.commands import Context, Bot
 
 from modules import database, messages
-from modules.messages import PREV_BUTTON_INDEX, NEXT_BUTTON_INDEX
 from modules.pagination import Paginator
 
 BOT_INFORMATION = ('I am a Yu-Gi-Oh! Duel Links card bot made by [CwC] Drackmord#9541.'
@@ -23,15 +23,15 @@ AUTHOR_ID = 351861715283214338
 MATCH_PAGE_SIZE = 10
 
 
-def setup(bot):
+def setup(bot: Bot) -> None:
     bot.add_cog(SearchCog(bot))
 
 
-def discord_item(q):
+def discord_item(q: str) -> bool:
     return q.startswith(('!', ':', 'a:', '@', '#', '://'))
 
 
-def get_queries(message_content):
+def get_queries(message_content: str) -> list:
     # Find {...} queries
     curly_queries = re.findall(r'(?<={)([^{}]*?)(?=})', message_content)
     # Find <...> queries
@@ -44,7 +44,7 @@ def get_queries(message_content):
     return [query.strip() for query in all_queries if query.strip()]
 
 
-def get_no_result_message(query):
+def get_no_result_message(query: str) -> str:
     return f'Sorry, I could not find any card or skill including `{query}`. I currently don\'t support incomplete ' \
            f'words or typos, but you can use only part of the words, for example `{{lara}}` '
 
@@ -52,22 +52,22 @@ def get_no_result_message(query):
 class SearchCog(commands.Cog, name='Search'):
     """Commands related to searching cards and skills"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         await database.check_updates()
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: Message) -> None:
         if self.should_be_ignored(message):
             return
         await self.process_info_request(message)
         await self.process_card_query(message)
 
     @commands.command()
-    async def match(self, context, *, args=''):
+    async def match(self, context: Context, *, args='') -> None:
         """Command used to perform a word search and browse the found matches
 
         Usage: `.match <words to include in the search>`
@@ -85,7 +85,7 @@ class SearchCog(commands.Cog, name='Search'):
             await context.message.channel.send(get_no_result_message(args))
 
     @commands.command(hidden=True)
-    async def update_db(self, context):
+    async def update_db(self, context: Context) -> None:
         """Performs a database update, re-downloading data from ygopro and dlm and checking if there are updates"""
         user_authorisation = await database.get_authorisation(str(context.message.author.id))
         if user_authorisation and user_authorisation['can_update']:
@@ -96,7 +96,7 @@ class SearchCog(commands.Cog, name='Search'):
             await context.send('Sorry, it looks like you don\'t have the necessary permission to run this command!')
 
     @commands.command(hidden=True)
-    async def rebuild_db(self, context):
+    async def rebuild_db(self, context: Context) -> None:
         """Performs a database rebuild, re-downloading data from ygopro and dlm and inserting a fresh new copy of
         everything """
         user_authorisation = await database.get_authorisation(str(context.message.author.id))
@@ -108,14 +108,14 @@ class SearchCog(commands.Cog, name='Search'):
         else:
             await context.send('Sorry, it looks like you don\'t have the necessary permission to run this command!')
 
-    async def process_info_request(self, message):
+    async def process_info_request(self, message: Message) -> None:
         if self.bot.user.mentioned_in(message):
             await message.channel.send(BOT_INFORMATION)
 
-    def should_be_ignored(self, message):
+    def should_be_ignored(self, message: Message) -> bool:
         return message.author == self.bot.user or message.author.bot or message.mention_everyone
 
-    async def process_card_query(self, message):
+    async def process_card_query(self, message: Message) -> None:
         queries = get_queries(message.content)
         if not queries:
             return
@@ -132,7 +132,7 @@ class SearchCog(commands.Cog, name='Search'):
             else:
                 await self.show_result(message, query, result_list[0])
 
-    async def show_result(self, message, query, result):
+    async def show_result(self, message: Message, query: str, result: dict):
         logging.info('')
         server_name = message.channel.guild.name
         channel_name = message.channel.name

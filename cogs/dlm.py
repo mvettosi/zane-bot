@@ -3,6 +3,7 @@ import re
 from itertools import groupby
 
 from discord.ext import commands
+from discord.ext.commands import Bot, Context
 
 from modules import download, messages
 from modules.download import HttpMethod
@@ -17,11 +18,11 @@ LADDER_PAGE_SIZE = 16
 LADDER_ELEMENT_KEY = 'players'
 
 
-def setup(bot):
+def setup(bot: Bot) -> None:
     bot.add_cog(DlmCog(bot))
 
 
-async def get_ladder():
+async def get_ladder() -> dict:
     manifest = await download.json(REV_MANIFEST_URL, HttpMethod.GET)
     all_seasons = [
         int(LADDER_REGEX.sub(r'\1', season)) for season in manifest.keys() if 'tpc-ladders/season-' in season
@@ -33,7 +34,7 @@ async def get_ladder():
     return await download.json(ladder_url, HttpMethod.GET)
 
 
-async def group_players(players, sort_by='total_points'):
+async def group_players(players: list, sort_by='total_points') -> list:
     players_grouped = []
     rank = 0
     for k, v in groupby(players, key=lambda x: x[sort_by]):
@@ -53,7 +54,7 @@ async def group_players(players, sort_by='total_points'):
     return players_grouped
 
 
-async def process_players(bot, context, paginator, ladder_type):
+async def process_players(bot: Bot, context: Context, paginator: Paginator, ladder_type: LadderType) -> None:
     embed = messages.get_ladder_page(paginator, ladder_type)
     message = await context.send(embed=embed)
     await message.add_reaction(PREV_BUTTON)
@@ -81,11 +82,11 @@ async def process_players(bot, context, paginator, ladder_type):
 class DlmCog(commands.Cog, name='DLM'):
     """Commands pulling various types of information from the Duel Links Meta website"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
 
     @commands.command()
-    async def ladder(self, context):
+    async def ladder(self, context: Context) -> None:
         """Command to display info on each player in the Duel Links Meta ladder, ordered by rank from high to low"""
         ladder = await get_ladder()
         players = ladder['players']
@@ -95,7 +96,7 @@ class DlmCog(commands.Cog, name='DLM'):
         await process_players(self.bot, context, players_paginated, LadderType.TOP_PLAYER)
 
     @commands.command(aliases=['anytimeladder', 'anytime-ladder'])
-    async def anytimes(self, context):
+    async def anytimes(self, context: Context) -> None:
         """Command to display info on each player in the Duel Links Meta anytime tournament ladder, \
         ordered by rank from high to low"""
         ladder = await get_ladder()

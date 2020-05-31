@@ -2,6 +2,7 @@ import logging
 from enum import Enum
 
 import discord
+from discord import Embed
 
 from modules import database, download, config
 from modules.config import COLORS
@@ -20,27 +21,23 @@ CARD_BUTTONS = [
     '\U0001f1ee',  # I
     '\U0001f1ef',  # J
 ]
+CARD_BUTTONS_BY_INDEX = dict((e, i) for (i, e) in enumerate(CARD_BUTTONS))
 PREV_BUTTON = '\U000023ee'
 NEXT_BUTTON = '\U000023ed'
-CARD_BUTTONS_BY_INDEX = dict((e, i) for (i, e) in enumerate(CARD_BUTTONS))
-PREV_BUTTON_INDEX = 10
-NEXT_BUTTON_INDEX = 11
-MATCH_PAGE_SIZE = 10
 
 
-
-def is_skill(result):
+def is_skill(result: dict) -> bool:
     return 'exclusive' in result
 
 
-def get_skill_thumbnail_url(skill):
+def get_skill_thumbnail_url(skill: dict) -> str:
     char = 'vagabond'
     if skill['exclusive']:
         char = skill['characters'][0]['name'].lower().replace(' ', '-')
     return f'https://www.duellinksmeta.com/img/characters/{char}/portrait.png'
 
 
-def get_skill_embed(skill):
+def get_skill_embed(skill: dict) -> Embed:
     name = skill['name']
     char_list = [h['name'] for h in skill['characters']]
     chars = ', '.join(char_list)
@@ -60,7 +57,7 @@ def get_skill_embed(skill):
     return embed
 
 
-async def get_card_desc(card, status):
+async def get_card_desc(card: dict) -> str:
     desc = ''
     race = card['race']
 
@@ -112,7 +109,7 @@ async def get_card_desc(card, status):
     return desc
 
 
-async def get_card_thumbnail_url(card, status):
+async def get_card_thumbnail_url(card: dict, status: str) -> str:
     result = ''
     if 'annotated_url' in card:
         logging.info('Using cached card image')
@@ -133,11 +130,6 @@ async def get_card_thumbnail_url(card, status):
             if status.startswith('Limited'):
                 request['limit'] = status[-1]
             response = await download.json(CARD_ANNOTATOR_URL, download.HttpMethod.POST, request)
-            # logging.info(f'Sending request with {request}')
-            # async with aiohttp.ClientSession() as cs:
-            #     async with cs.post(CARD_ANNOTATOR_URL, json=request) as r:
-            #         response = await r.json()
-            #         logging.info(f'Received response: {response}')
             if response and 'url' in response and response['url']:
                 result = response['url']
                 card['annotated_url'] = result
@@ -148,13 +140,13 @@ async def get_card_thumbnail_url(card, status):
     return result
 
 
-def get_card_color(card):
+def get_card_color(card: dict) -> int:
     card_type = card['type']
     color_string = COLORS[card_type]
     return int(color_string, 16)
 
 
-def get_card_text_title(card):
+def get_card_text_title(card: dict) -> str:
     if 'Monster' in card['type']:
         if 'Normal' in card['type']:
             return 'Lore Text'
@@ -164,11 +156,11 @@ def get_card_text_title(card):
         return 'Card Effect'
 
 
-async def get_card_embed(card):
+async def get_card_embed(card: dict) -> Embed:
     name = card['name']
-    status = await database.get_forbidden_status(card['name'])
-    desc = await get_card_desc(card, status)
+    desc = await get_card_desc(card)
     color = get_card_color(card)
+    status = await database.get_forbidden_status(card['name'])
     thumbnail_url = await get_card_thumbnail_url(card, status)
     desc_title = get_card_text_title(card)
     card_text = card['desc']
@@ -183,7 +175,7 @@ async def get_card_embed(card):
     return embed
 
 
-async def get_embed(result):
+async def get_embed(result: dict) -> Embed:
     if is_skill(result):
         return get_skill_embed(result)
     else:
@@ -205,7 +197,12 @@ def get_search_result(paginator: Paginator, query: str) -> discord.Embed:
     return embed
 
 
-def get_ladder_page(paginator, ladder_type):
+class LadderType(Enum):
+    TOP_PLAYER = 'Top Player'
+    ANYTIME = 'Anytime'
+
+
+def get_ladder_page(paginator: Paginator, ladder_type: LadderType) -> Embed:
     title = f'Duel Links Meta {ladder_type.value} Ladder (Page {paginator.current_page + 1} of {paginator.pages_number()})'
     result = discord.Embed(title=title, color=config.BOT_COLOR)
     page = paginator.get_page()
@@ -222,8 +219,3 @@ def get_ladder_page(paginator, ladder_type):
         ])
         result.add_field(name=rank_text, value=rank_desc)
     return result
-
-
-class LadderType(Enum):
-    TOP_PLAYER = 'Top Player'
-    ANYTIME = 'Anytime'

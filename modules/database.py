@@ -16,7 +16,7 @@ db = client[config.DB_NAME]
 db.data.create_index([("name", pymongo.TEXT)])
 
 
-async def retrieve_md5s():
+async def retrieve_md5s() -> dict:
     result = {}
     for file_type in FileType:
         retrieved = await db.md5.find_one({"name": file_type.name})
@@ -24,11 +24,11 @@ async def retrieve_md5s():
     return result
 
 
-async def insert_md5(file_type, md5):
+async def insert_md5(file_type: FileType, md5: str):
     await db.md5.update_one({"name": file_type.name}, {"$set": {"name": file_type.name, 'md5': md5}}, upsert=True)
 
 
-async def load_json_file(file_type, file_path):
+async def load_json_file(file_type: FileType, file_path: str) -> None:
     with open(file_path, 'r') as data_file:
         data_json = json.load(data_file)
 
@@ -78,7 +78,7 @@ async def load_json_file(file_type, file_path):
         await db.data.insert_many(data_json)
 
 
-async def check_updates():
+async def check_updates() -> None:
     stored_md5 = await retrieve_md5s()
     for file_type in FileType:
         logging.info(f'')
@@ -105,7 +105,7 @@ async def check_updates():
             f'Update took {elapsed_minutes} minutes and {elapsed_seconds} seconds')
 
 
-async def search(query, how_many=None, exact=False, match_type=False):
+async def search(query: str, how_many=None, exact=False, match_type=False) -> list:
     enforce_token = None
     if query and query[0] in [FORCE_CARD, FORCE_SKILL]:
         # extract enforce token
@@ -137,11 +137,11 @@ async def search(query, how_many=None, exact=False, match_type=False):
     return await db.data.find(search_filter, projection).sort(sorting).to_list(length=how_many)
 
 
-async def get_card(card_id):
+async def get_card(card_id: ObjectId) -> dict:
     return await db.data.find_one({"_id": card_id})
 
 
-async def get_forbidden_status(card_name):
+async def get_forbidden_status(card_name: str) -> str:
     result = await db.forbidden.find_one({'name': card_name})
     if result:
         return result['status']
@@ -149,13 +149,13 @@ async def get_forbidden_status(card_name):
         return 'Unlimited'
 
 
-async def update_card(card):
+async def update_card(card: dict) -> None:
     await db.data.update_one({'_id': ObjectId(card['_id'])},  {'$set': card})
 
 
-async def clean_md5s():
+async def clean_md5s() -> None:
     await db.md5.delete_many({})
 
 
-async def get_authorisation(user_id):
+async def get_authorisation(user_id: str) -> dict:
     return await db.updaters.find_one({'discord_id': user_id})

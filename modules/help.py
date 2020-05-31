@@ -1,14 +1,17 @@
+from collections import Mapping
+
 import discord
 from discord.ext import commands
+from discord.ext.commands import Command, Cog
 
 from modules import config
 
 
 class CustomHelpCommand(commands.HelpCommand):
-    def get_command_signature(self, command):
+    def get_command_signature(self, command: Command) -> str:
         return self.clean_prefix + f' | {self.clean_prefix}'.join([command.name] + command.aliases)
 
-    async def send_bot_help(self, mapping):
+    async def send_bot_help(self, mapping: Mapping) -> None:
         title = self.context.bot.description if self.context.bot.description else 'Zane Bot Commands'
         desc = f"Type `{self.clean_prefix}{self.invoked_with} command` for more info on a command.\n" \
                f"You can also type `{self.clean_prefix}{self.invoked_with} category` for more info on a category."
@@ -25,7 +28,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
         await self.get_destination().send(embed=embed)
 
-    async def send_cog_help(self, cog):
+    async def send_cog_help(self, cog: Cog) -> None:
         title = f'{cog.qualified_name} Commands'
         embed = discord.Embed(title=title, description=cog.description, colour=config.BOT_COLOR)
 
@@ -37,7 +40,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
         await self.get_destination().send(embed=embed)
 
-    async def send_command_help(self, command):
+    async def send_command_help(self, command: Command) -> None:
         title = f'Command: {command.name}'
         desc = command.help
         if command.aliases:
