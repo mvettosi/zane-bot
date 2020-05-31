@@ -49,10 +49,10 @@ async def download(file_type: FileType) -> dict:
 async def json(url: str, method: HttpMethod, request=None) -> dict:
     logging.info(f'{method.name}ing url: {url}')
     if request:
-        logging.info(f'Request body: {request}')
+        logging.debug(f'Request body: {request}')
     async with aiohttp.ClientSession() as cs:
         call = cs.get(url) if method is HttpMethod.GET else cs.post(url, json=request)
         async with call as r:
             response = await r.json()
-            logging.info(f'Received response: {dumps(response)}')
+            logging.debug(f'Received response: {dumps(response)}')
             return response
