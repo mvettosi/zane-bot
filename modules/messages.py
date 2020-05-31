@@ -1,12 +1,12 @@
 import logging
-import math
+from enum import Enum
 
-import aiohttp
 import discord
-from discord import Colour
+from discord import Embed
 
-from modules import database
+from modules import database, download, config
 from modules.config import COLORS
+from modules.pagination import Paginator
 
 CARD_ANNOTATOR_URL = 'https://dl-card-annotator.paas.drackmord.space'
 CARD_BUTTONS = [
@@ -20,24 +20,24 @@ CARD_BUTTONS = [
     '\U0001f1ed',  # H
     '\U0001f1ee',  # I
     '\U0001f1ef',  # J
-    '\U000023ee',  # PREV
-    '\U000023ed',  # NEXT
 ]
 CARD_BUTTONS_BY_INDEX = dict((e, i) for (i, e) in enumerate(CARD_BUTTONS))
+PREV_BUTTON = '\U000023ee'
+NEXT_BUTTON = '\U000023ed'
 
 
-def is_skill(result):
+def is_skill(result: dict) -> bool:
     return 'exclusive' in result
 
 
-def get_skill_thumbnail_url(skill):
+def get_skill_thumbnail_url(skill: dict) -> str:
     char = 'vagabond'
     if skill['exclusive']:
         char = skill['characters'][0]['name'].lower().replace(' ', '-').replace('(', '').replace(')', '')
     return f'https://www.duellinksmeta.com/img/characters/{char}/portrait.png'
 
 
-def get_skill_embed(skill):
+def get_skill_embed(skill: dict) -> Embed:
     name = skill['name']
     char_list = [h['name'] for h in skill['characters']]
     chars = ', '.join(char_list)
@@ -47,7 +47,7 @@ def get_skill_embed(skill):
     desc = f'''
         **Characters**: {chars}
         **How to Obtain**: {hows}'''
-    color = Colour.light_grey()
+    color = config.BOT_COLOR
     thumbnail_url = get_skill_thumbnail_url(skill)
     skill_text = skill['description']
 
@@ -57,7 +57,7 @@ def get_skill_embed(skill):
     return embed
 
 
-async def get_card_desc(card, status):
+async def get_card_desc(card: dict) -> str:
     desc = ''
     race = card['race']
 
@@ -109,7 +109,7 @@ async def get_card_desc(card, status):
     return desc
 
 
-async def get_card_thumbnail_url(card, status):
+async def get_card_thumbnail_url(card: dict, status: str) -> str:
     result = ''
     if 'annotated_url' in card:
         logging.info('Using cached card image')
@@ -129,28 +129,24 @@ async def get_card_thumbnail_url(card, status):
             request = {'url': result, 'rarity': card['rarity']}
             if status.startswith('Limited'):
                 request['limit'] = status[-1]
-            logging.info(f'Sending request with {request}')
-            async with aiohttp.ClientSession() as cs:
-                async with cs.post(CARD_ANNOTATOR_URL, json=request) as r:
-                    response = await r.json()
-                    logging.info(f'Received response: {response}')
-                    if response and 'url' in response and response['url']:
-                        result = response['url']
-                        card['annotated_url'] = result
-                        await database.update_card(card)
+            response = await download.json(CARD_ANNOTATOR_URL, download.HttpMethod.POST, request)
+            if response and 'url' in response and response['url']:
+                result = response['url']
+                card['annotated_url'] = result
+                await database.update_card(card)
         else:
             logging.info('Using non-annotated image')
 
     return result
 
 
-def get_card_color(card):
+def get_card_color(card: dict) -> int:
     card_type = card['type']
     color_string = COLORS[card_type]
     return int(color_string, 16)
 
 
-def get_card_text_title(card):
+def get_card_text_title(card: dict) -> str:
     if 'Monster' in card['type']:
         if 'Normal' in card['type']:
             return 'Lore Text'
@@ -160,11 +156,11 @@ def get_card_text_title(card):
         return 'Card Effect'
 
 
-async def get_card_embed(card):
+async def get_card_embed(card: dict) -> Embed:
     name = card['name']
-    status = await database.get_forbidden_status(card['name'])
-    desc = await get_card_desc(card, status)
+    desc = await get_card_desc(card)
     color = get_card_color(card)
+    status = await database.get_forbidden_status(card['name'])
     thumbnail_url = await get_card_thumbnail_url(card, status)
     desc_title = get_card_text_title(card)
     card_text = card['desc']
@@ -179,25 +175,47 @@ async def get_card_embed(card):
     return embed
 
 
-async def get_embed(result):
+async def get_embed(result: dict) -> Embed:
     if is_skill(result):
         return get_skill_embed(result)
     else:
         return await get_card_embed(result)
 
 
-def get_search_result(results, page, query):
-    first_index = page * 10
-    last_index = first_index + 10 if first_index + 10 < len(results) else len(results)
+def get_search_result(paginator: Paginator, query: str) -> discord.Embed:
+    page = paginator.get_page()
     title = f'Results for {query}' if query else 'Search results'
-    desc = f'Page `{page + 1}` of `{math.ceil(len(results) / 10)}`, results `{first_index + 1} - {last_index + 1}`'
-    color = Colour.light_grey()
-    embed = discord.Embed(title=title, description=desc, color=color)
-    for index in range(first_index, last_index):
-        entry = results[index]
-        button = CARD_BUTTONS[index % 10]
+    desc = f'Page `{paginator.current_page + 1}` of `{paginator.pages_number()}`, ' \
+           f'results `{page.index_start + 1} - {page.index_end + 1}` '
+    embed = discord.Embed(title=title, description=desc, color=config.BOT_COLOR)
+    for index, entry in enumerate(page.elements):
+        button = CARD_BUTTONS[index]
         name = entry['name']
         entry_type = 'Skill' if 'exclusive' in entry else 'Card'
         entry_text = f'{button} {name}'
         embed.add_field(name=entry_type, value=entry_text, inline=False)
     return embed
+
+
+class LadderType(Enum):
+    TOP_PLAYER = 'Top Player'
+    ANYTIME = 'Anytime'
+
+
+def get_ladder_page(paginator: Paginator, ladder_type: LadderType) -> Embed:
+    title = f'Duel Links Meta {ladder_type.value} Ladder (Page {paginator.current_page + 1} of {paginator.pages_number()})'
+    result = discord.Embed(title=title, color=config.BOT_COLOR)
+    page = paginator.get_page()
+    for player_group in page.elements:
+        rank_min = player_group['rank_min']
+        rank_max = player_group['rank_max']
+        rank_text = f'Rank {rank_min}' if rank_min == rank_max else f'Rank {rank_min}-{rank_max}'
+        if rank_min <= 16 and ladder_type is LadderType.TOP_PLAYER:
+            rank_text += ' (new TPC)'
+        rank_system = 'points' if ladder_type is LadderType.TOP_PLAYER else 'wins'
+        rank_key = 'total_points' if ladder_type is LadderType.TOP_PLAYER else 'wins'
+        rank_desc = '\n'.join([
+            '`' + p['name'] + '` (' + str(p[rank_key]) + f' {rank_system})' for p in player_group['players']
+        ])
+        result.add_field(name=rank_text, value=rank_desc)
+    return result
