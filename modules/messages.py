@@ -156,18 +156,38 @@ def get_card_text_title(card: dict) -> str:
         return 'Card Effect'
 
 
+def add_desc(card: dict, embed: Embed) -> None:
+    card_text = card['desc']
+    if '[ Pendulum Effect ]' in card_text:
+        desc_lines = card_text.splitlines()
+        desc_title = ''
+        result_lines = []
+        for line in desc_lines:
+            if line.startswith('[') and line.endswith(']'):
+                if desc_title and result_lines:
+                    result_desc = '\n'.join(result_lines)
+                    embed.add_field(name=desc_title, value=result_desc, inline=False)
+                    result_lines = []
+                desc_title = line
+            elif not all(c == '-' for c in line):
+                result_lines.append(line)
+        result_desc = '\n'.join(result_lines)
+        embed.add_field(name=desc_title, value=result_desc, inline=False)
+    else:
+        desc_title = get_card_text_title(card)
+        embed.add_field(name=desc_title, value=card_text, inline=False)
+
+
 async def get_card_embed(card: dict) -> Embed:
     name = card['name']
     desc = await get_card_desc(card)
     color = get_card_color(card)
     status = await database.get_forbidden_status(card['name'])
     thumbnail_url = await get_card_thumbnail_url(card, status)
-    desc_title = get_card_text_title(card)
-    card_text = card['desc']
 
     embed = discord.Embed(title=name, description=desc, color=color)
     embed.set_thumbnail(url=thumbnail_url)
-    embed.add_field(name=desc_title, value=card_text, inline=False)
+    add_desc(card, embed)
 
     if 'id' in card:
         card_id = card['id']
