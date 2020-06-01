@@ -111,31 +111,32 @@ async def get_card_desc(card: dict) -> str:
 
 async def get_card_thumbnail_url(card: dict, status: str) -> str:
     result = ''
-    if 'annotated_url' in card:
-        logging.info('Using cached card image')
-        result = card['annotated_url']
-    else:
-        if 'customURL' in card:
-            custom_url = card['customURL']
-            result = f'https://www.duellinksmeta.com/{custom_url}'
-        elif 'konami_id' in card:
-            konami_id = card['konami_id']
-            result = f'https://www.konami.com/yugioh/duel_links/en/box/cards/en/{konami_id}.jpg'
-        elif 'card_images' in card:
-            result = card['card_images'][0]['image_url']
+    # if 'annotated_url' in card:
+    #     logging.info('Using cached card image')
+    #     result = card['annotated_url']
+    # else:
+    if 'customURL' in card:
+        custom_url = card['customURL']
+        result = f'https://www.duellinksmeta.com/{custom_url}'
+    elif 'konami_id' in card:
+        konami_id = card['konami_id']
+        result = f'https://www.konami.com/yugioh/duel_links/en/box/cards/en/{konami_id}.jpg'
+    elif 'card_images' in card:
+        result = card['card_images'][0]['image_url']
 
-        if result and 'rarity' in card and card['rarity'] != 'N/A':
-            logging.info('Retrieving new annotated card image')
-            request = {'url': result, 'rarity': card['rarity']}
-            if status.startswith('Limited'):
-                request['limit'] = status[-1]
-            response = await download.json(CARD_ANNOTATOR_URL, download.HttpMethod.POST, request)
-            if response and 'url' in response and response['url']:
-                result = response['url']
-                card['annotated_url'] = result
-                await database.update_card(card)
-        else:
-            logging.info('Using non-annotated image')
+    if result and 'rarity' in card and card['rarity'] != 'N/A':
+        logging.info('Retrieving new annotated card image')
+        request = {'url': result, 'rarity': card['rarity']}
+        if status.startswith('Limited'):
+            request['limit'] = status[-1]
+        response = await download.json(CARD_ANNOTATOR_URL, download.HttpMethod.POST, request)
+        if response and 'url' in response and response['url']:
+            result = response['url']
+            logging.info(f'Image received: {result}')
+            # card['annotated_url'] = result
+            # await database.update_card(card)
+    else:
+        logging.info('Using non-annotated image')
 
     return result
 
