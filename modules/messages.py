@@ -120,9 +120,7 @@ async def get_card_thumbnail_url(card: dict, status: str) -> str:
             result = f'https://www.duellinksmeta.com/{custom_url}'
         elif 'konami_id' in card:
             konami_id = card['konami_id']
-            result = f'https://www.konami.com/yugioh/duel_links/en/box/cards/en/{konami_id}.jpg'
-            if not await download.check(result):
-                result = f'https://www.konami.com/yugioh/duel_links/images/card/en/{konami_id}.jpg'
+            result = f'https://www.konami.com/yugioh/duel_links/images/card/en/{konami_id}.jpg'
         elif 'card_images' in card:
             result = card['card_images'][0]['image_url']
 
