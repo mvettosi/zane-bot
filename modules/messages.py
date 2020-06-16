@@ -111,7 +111,7 @@ async def get_card_desc(card: dict) -> str:
 
 async def get_card_thumbnail_url(card: dict, status: str) -> str:
     result = ''
-    if 'annotated_url' in card:
+    if 'annotated_url' in card and await download.check(card['annotated_url']):
         logging.info('Using cached card image')
         result = card['annotated_url']
     else:
@@ -121,6 +121,8 @@ async def get_card_thumbnail_url(card: dict, status: str) -> str:
         elif 'konami_id' in card:
             konami_id = card['konami_id']
             result = f'https://www.konami.com/yugioh/duel_links/en/box/cards/en/{konami_id}.jpg'
+            if not await download.check(result):
+                result = f'https://www.konami.com/yugioh/duel_links/images/card/en/{konami_id}.jpg'
         elif 'card_images' in card:
             result = card['card_images'][0]['image_url']
 

@@ -56,3 +56,14 @@ async def json(url: str, method: HttpMethod, request=None) -> dict:
             response = await r.json()
             logging.debug(f'Received response: {dumps(response)}')
             return response
+
+
+async def check(url: str) -> bool:
+    logging.info(f'Checking url: {url}')
+    try:
+        async with aiohttp.ClientSession() as cs:
+            async with cs.head(url) as r:
+                logging.debug(f'Check result: {r.status}')
+                return 200 <= r.status < 300
+    except:
+        return False
