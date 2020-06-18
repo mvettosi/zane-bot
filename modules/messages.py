@@ -26,23 +26,51 @@ PREV_BUTTON = '\U000023ee'
 NEXT_BUTTON = '\U000023ed'
 
 
-def is_skill(result: dict) -> bool:
-    return 'exclusive' in result
+class SearchResult(object):
+
+    def __init__(self, result: dict) -> None:
+        super().__init__()
+        self.data = result
+
+    def __contains__(self, item):
+        return item in self.data
+
+    def __getitem__(self, key):
+        if key in self.data:
+            return self.data[key]
+        else:
+            result_name = self.get('name', '(name not found)')
+            logging.warning(f'Attribute "{key}" missing from search result "{result_name}"!')
+            logging.debug(f'Full search results: {self.data}')
+            return 'Not Found'
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
+    def is_skill(self) -> bool:
+        return 'exclusive' in self.data
+
+    def get(self, key, default_value=None):
+        return self.data[key] if key in self.data else default_value
 
 
-def get_skill_thumbnail_url(skill: dict) -> str:
+def get_skill_thumbnail_url(skill: SearchResult) -> str:
     char = 'vagabond'
     if skill['exclusive']:
-        char = skill['characters'][0]['name'].lower().replace(' ', '-').replace('(', '').replace(')', '')
+        try:
+            char = skill.get('characters')[0]['name'].lower().replace(' ', '-').replace('(', '').replace(')', '')
+        except:
+            pass
     return f'https://www.duellinksmeta.com/img/characters/{char}/portrait.png'
 
 
-def get_skill_embed(skill: dict) -> Embed:
+def get_skill_embed(skill: SearchResult) -> Embed:
     name = skill['name']
-    char_list = [h['name'] for h in skill['characters']]
+    characters = skill.get('characters', [])
+    char_list = [h['name'] for h in characters]
     chars = ', '.join(char_list)
     hows_list = [h['how'] + ' from ' + h['name'] if h['how'] == 'Drop' else h['name'] + ' ' + h['how'] for h in
-                 skill['characters']]
+                 characters]
     hows = ', '.join(hows_list)
     desc = f'''
         **Characters**: {chars}
@@ -57,7 +85,7 @@ def get_skill_embed(skill: dict) -> Embed:
     return embed
 
 
-async def get_card_desc(card: dict) -> str:
+async def get_card_desc(card: SearchResult) -> str:
     desc = ''
     race = card['race']
 
@@ -103,13 +131,13 @@ async def get_card_desc(card: dict) -> str:
 
     # Release date
     if 'release' in card:
-        release = card['release'] if 'release' in card else 'Not released yet'
+        release = card['release']
         desc = desc + f'\n**Released**: {release}'
 
     return desc
 
 
-async def get_card_thumbnail_url(card: dict, status: str) -> str:
+async def get_card_thumbnail_url(card: SearchResult, status: str) -> str:
     result = ''
     if 'annotated_url' in card and await download.check(card['annotated_url']):
         logging.info('Using cached card image')
@@ -121,8 +149,11 @@ async def get_card_thumbnail_url(card: dict, status: str) -> str:
         elif 'konami_id' in card:
             konami_id = card['konami_id']
             result = f'https://www.konami.com/yugioh/duel_links/images/card/en/{konami_id}.jpg'
-        elif 'card_images' in card:
-            result = card['card_images'][0]['image_url']
+        else:
+            try:
+                result = card.get('card_images')[0]['image_url']
+            except:
+                pass
 
         if result and 'rarity' in card and card['rarity'] != 'N/A':
             logging.info('Retrieving new annotated card image')
@@ -133,20 +164,23 @@ async def get_card_thumbnail_url(card: dict, status: str) -> str:
             if response and 'url' in response and response['url']:
                 result = response['url']
                 card['annotated_url'] = result
-                await database.update_card(card)
+                await database.update_card(card.data)
         else:
             logging.info('Using non-annotated image')
 
     return result
 
 
-def get_card_color(card: dict) -> int:
+def get_card_color(card: SearchResult) -> int:
     card_type = card['type']
-    color_string = COLORS[card_type]
-    return int(color_string, 16)
+    if card_type in COLORS:
+        color_string = COLORS[card_type]
+        return int(color_string, 16)
+    else:
+        return config.BOT_COLOR
 
 
-def get_card_text_title(card: dict) -> str:
+def get_card_text_title(card: SearchResult) -> str:
     if 'Monster' in card['type']:
         if 'Normal' in card['type']:
             return 'Lore Text'
@@ -156,7 +190,7 @@ def get_card_text_title(card: dict) -> str:
         return 'Card Effect'
 
 
-def add_desc(card: dict, embed: Embed) -> None:
+def add_desc(card: SearchResult, embed: Embed) -> None:
     card_text = card['desc']
     if '[ Pendulum Effect ]' in card_text:
         desc_lines = card_text.splitlines()
@@ -178,11 +212,11 @@ def add_desc(card: dict, embed: Embed) -> None:
         embed.add_field(name=desc_title, value=card_text, inline=False)
 
 
-async def get_card_embed(card: dict) -> Embed:
+async def get_card_embed(card: SearchResult) -> Embed:
     name = card['name']
     desc = await get_card_desc(card)
     color = get_card_color(card)
-    status = await database.get_forbidden_status(card['name'])
+    status = await database.get_forbidden_status(name)
     thumbnail_url = await get_card_thumbnail_url(card, status)
 
     embed = discord.Embed(title=name, description=desc, color=color)
@@ -195,8 +229,9 @@ async def get_card_embed(card: dict) -> Embed:
     return embed
 
 
-async def get_embed(result: dict) -> Embed:
-    if is_skill(result):
+async def get_embed(data: dict) -> Embed:
+    result = SearchResult(data)
+    if result.is_skill():
         return get_skill_embed(result)
     else:
         return await get_card_embed(result)
