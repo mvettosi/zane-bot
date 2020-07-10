@@ -2,6 +2,7 @@ import logging
 from enum import Enum
 
 import discord
+from aiohttp import ContentTypeError
 from discord import Embed
 
 from modules import database, download, config
@@ -138,29 +139,49 @@ async def get_card_desc(card: SearchResult) -> str:
 
 
 async def get_card_thumbnail_url(card: SearchResult, status: str) -> str:
+    default_img = ''
+    specific_img = ''
     result = ''
     if 'annotated_url' in card and await download.check(card['annotated_url']):
         logging.info('Using cached card image')
         result = card['annotated_url']
     else:
+        try:
+            default_img = card.get('card_images')[0]['image_url']
+        except:
+            pass
+
         if 'customURL' in card:
             custom_url = card['customURL']
-            result = f'https://www.duellinksmeta.com/{custom_url}'
+            specific_img = f'https://www.duellinksmeta.com/{custom_url}'
         elif 'konami_id' in card:
             konami_id = card['konami_id']
-            result = f'https://www.konami.com/yugioh/duel_links/images/card/en/{konami_id}.jpg'
-        else:
-            try:
-                result = card.get('card_images')[0]['image_url']
-            except:
-                pass
+            specific_img = f'https://www.konami.com/yugioh/duel_links/images/card/en/{konami_id}.jpg'
 
-        if result and 'rarity' in card and card['rarity'] != 'N/A':
+        if 'rarity' in card and card['rarity'] != 'N/A':
             logging.info('Retrieving new annotated card image')
-            request = {'url': result, 'rarity': card['rarity']}
+            request = {'rarity': card['rarity']}
             if status.startswith('Limited'):
                 request['limit'] = status[-1]
-            response = await download.json(CARD_ANNOTATOR_URL, download.HttpMethod.POST, request)
+            response = None
+
+            # Try to fetch specific image first
+            if specific_img and await download.check(specific_img):
+                request['url'] = specific_img
+                try:
+                    response = await download.json(CARD_ANNOTATOR_URL, download.HttpMethod.POST, request)
+                except Exception as e:
+                    logging.error(f'Could not generate annotated specific image, trying with tcg\n{e}')
+
+            # If specific image failed, try to annotate tcg one
+            if not response and default_img and await download.check(default_img):
+                request['url'] = default_img
+                try:
+                    response = await download.json(CARD_ANNOTATOR_URL, download.HttpMethod.POST, request)
+                except Exception as e:
+                    logging.error(f'Could not generate annotated tcg image either! Using no image...\n{e}')
+
+            # If anything worked, update result and db
             if response and 'url' in response and response['url']:
                 result = response['url']
                 card['annotated_url'] = result
