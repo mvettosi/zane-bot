@@ -188,6 +188,7 @@ async def get_card_thumbnail_url(card: SearchResult, status: str) -> str:
                 await database.update_card(card.data)
         else:
             logging.info('Using non-annotated image')
+            result = default_img
 
     return result
 
