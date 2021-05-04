@@ -9,7 +9,7 @@ from modules import database, download, config
 from modules.config import COLORS
 from modules.pagination import Paginator
 
-CARD_ANNOTATOR_URL = 'https://dl-card-annotator.paas.drackmord.space'
+CARD_ANNOTATOR_URL = config.CARD_ANNOTATOR_URL or 'https://dl-card-annotator.paas.drackmord.co.uk'
 CARD_BUTTONS = [
     '\U0001f1e6',  # A
     '\U0001f1e7',  # B
