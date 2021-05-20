@@ -5,6 +5,7 @@ import traceback
 from pprint import pformat
 
 from discord import Message
+from discord.errors import Forbidden
 from discord.ext import commands
 from discord.ext.commands import Context, Bot
 
@@ -152,8 +153,9 @@ class SearchCog(commands.Cog, name='Search'):
                 trace = trace[0:2000]
             result_name = result['name']
             logging.error(f'Error processing "{result_name}" for query "{query}"')
-            await user.send(f'{debug_info}\nCard pulled: {result_name}\n```{trace}```')
-            await message.channel.send(f'Sorry, some internal error occurred. I\'m still in testing but don\'t worry, '
+            if not isinstance(e, Forbidden):
+                await user.send(f'{debug_info}\nCard pulled: {result_name}\n```{trace}```')
+                await message.channel.send(f'Sorry, some internal error occurred. I\'m still in testing but don\'t worry, '
                                        f'I just pinged my author with the details so this will be fixed soon!')
 
     async def process_match(self, context: Context, args: str, paginator: Paginator) -> None:
