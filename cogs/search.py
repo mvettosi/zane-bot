@@ -57,11 +57,7 @@ class SearchCog(commands.Cog, name='Search'):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_ready(self) -> None:
-        logging.info('Servers connected to:')
-        for guild in self.bot.guilds:
-            logging.info(guild.name)
-            
+    async def on_ready(self) -> None:            
         await database.check_updates()
 
     @commands.Cog.listener()
@@ -197,3 +193,10 @@ class SearchCog(commands.Cog, name='Search'):
             except asyncio.exceptions.TimeoutError:
                 await message.clear_reactions()
                 wait_for_decision = False
+
+    @commands.command(hidden=True)
+    async def show_servers(self, context: Context) -> None:
+        msg = 'Servers connected to:\n'
+        for guild in self.bot.guilds:
+            msg += guild.name + '\n'
+        context.messagechannel.send(msg)
