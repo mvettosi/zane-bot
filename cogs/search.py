@@ -58,9 +58,9 @@ class SearchCog(commands.Cog, name='Search'):
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        print('Servers connected to:')
+        logging.info('Servers connected to:')
         for guild in self.bot.guilds:
-            print(guild.name)
+            logging.info(guild.name)
             
         await database.check_updates()
 
