@@ -199,4 +199,4 @@ class SearchCog(commands.Cog, name='Search'):
         msg = 'Servers connected to:\n'
         for guild in self.bot.guilds:
             msg += guild.name + '\n'
-        context.message.channel.send(msg)
+        await context.message.channel.send(msg)
