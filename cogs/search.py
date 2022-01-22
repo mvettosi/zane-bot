@@ -132,7 +132,7 @@ class SearchCog(commands.Cog, name='Search'):
                 await message.channel.send(get_no_result_message(query))
             else:
                 await self.show_result(message, query, result_list[0])
-            await message.channel.send("```NOTICE: SHUTTING DOWN\nBecause I can't cover the costs of running this bot anymore, starting 1st February 2022 Zane will shut down.\nIf every server using it were to pay 1¢ per month, however, I could use that money to pay for the server, and maybe even starting to take feature requests.\nIf you are interested, please write to Drackmord#9541 or drackmord92@gmail.com```")
+            #await message.channel.send("```NOTICE: SHUTTING DOWN\nBecause I can't cover the costs of running this bot anymore, starting 1st February 2022 Zane will shut down.\nIf every server using it were to pay 1¢ per month, however, I could use that money to pay for the server, and maybe even starting to take feature requests.\nIf you are interested, please write to Drackmord#9541 or drackmord92@gmail.com```")
 
     async def show_result(self, message: Message, query: str, result: dict):
         logging.info('')
