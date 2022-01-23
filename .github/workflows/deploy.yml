@@ -21,3 +21,4 @@ jobs:
         port: ${{ secrets.HOST_PORT }}
         username: ${{ secrets.HOST_USER }}
         password: ${{ secrets.HOST_PASSWORD }}
+        protocol: ftps
