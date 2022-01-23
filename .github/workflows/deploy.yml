@@ -1,5 +1,4 @@
 on: push
-  branches: [ master ]
 name: 🚀 Deploy bot on push
 jobs:
   bot-deploy:
