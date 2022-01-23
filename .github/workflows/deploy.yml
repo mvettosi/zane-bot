@@ -10,9 +10,9 @@ jobs:
 
     - name: Set secrets
       run: |
-        sed -i'.backup' -e 's/BOT_TOKEN =.*$/BOT_TOKEN = "${{ secrets.BOT_TOKEN }}"/' modules/config.py
-        sed -i'.backup' -e 's/DB_CONNECTION_URL =.*$/DB_CONNECTION_URL = "${{ secrets.DB_CONNECTION_URL }}"/' modules/config.py
-        sed -i'.backup' -e 's/DB_NAME =.*$/DB_NAME = "${{ secrets.DB_NAME }}"/' modules/config.py
+        sed -i'.backup' -e 's/BOT_TOKEN =.*$/BOT_TOKEN = "cacca"/' modules/config.py
+        sed -i'.backup' -e 's/DB_CONNECTION_URL =.*$/DB_CONNECTION_URL = "cacca"/' modules/config.py
+        sed -i'.backup' -e 's/DB_NAME =.*$/DB_NAME = "cacca"/' modules/config.py
 
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@4.2.0
