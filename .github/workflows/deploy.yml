@@ -1,4 +1,5 @@
 on: push
+  branches: [ master ]
 name: 🚀 Deploy bot on push
 jobs:
   bot-deploy:
@@ -17,8 +18,6 @@ jobs:
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@4.2.0
       with:
-        server: ${{ secrets.HOST_IP }}
-        port: ${{ secrets.HOST_PORT }}
+        server: sftp://${{ secrets.HOST_IP }}:${{ secrets.HOST_PORT }}/
         username: ${{ secrets.HOST_USER }}
         password: ${{ secrets.HOST_PASSWORD }}
-        protocol: ftps
