@@ -8,3 +8,4 @@ data/db.json
 env.list
 tmp/
 *.env
+**/**.backup

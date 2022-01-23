@@ -80,7 +80,7 @@ async def load_json_file(file_type: FileType, file_path: str) -> None:
 
 async def check_updates() -> None:
     stored_md5 = await retrieve_md5s()
-    for file_type in FileType:
+    for file_type in [FileType.TCG]:
         logging.info(f'')
         logging.info(f'Checking {file_type.name} updates...')
         start_time = time.time()

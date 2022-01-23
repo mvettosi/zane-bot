@@ -100,14 +100,14 @@ class SearchCog(commands.Cog, name='Search'):
     async def rebuild_db(self, context: Context) -> None:
         """Performs a database rebuild, re-downloading data from ygopro and dlm and inserting a fresh new copy of
         everything """
-        user_authorisation = await database.get_authorisation(str(context.message.author.id))
-        if user_authorisation and user_authorisation['can_rebuild']:
-            await context.send('Deleting all database...')
-            await database.clean_md5s()
-            await database.check_updates()
-            await context.send('Database rebuilt!')
-        else:
-            await context.send('Sorry, it looks like you don\'t have the necessary permission to run this command!')
+        #user_authorisation = await database.get_authorisation(str(context.message.author.id))
+        #if user_authorisation and user_authorisation['can_rebuild']:
+        await context.send('Deleting all database...')
+        await database.clean_md5s()
+        await database.check_updates()
+        await context.send('Database rebuilt!')
+        #else:
+        #    await context.send('Sorry, it looks like you don\'t have the necessary permission to run this command!')
 
     async def process_info_request(self, message: Message) -> None:
         if self.bot.user.mentioned_in(message):
