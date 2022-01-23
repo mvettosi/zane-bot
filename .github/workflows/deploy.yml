@@ -10,8 +10,10 @@ jobs:
 
     - name: Set secrets
       run: |
-        sed -i'.backup' -e 's/BOT_TOKEN =.*$/BOT_TOKEN = "cacca"/' modules/config.py
-        sed -i'.backup' -e 's/DB_CONNECTION_URL =.*$/DB_CONNECTION_URL = "${{ secrets.DB_CONNECTION_URL }}"/' modules/config.py
+        ESCAPED_TOKEN=$(printf '%s\n' "${{ secrets.BOT_TOKEN }}" | sed -e 's/[\/&]/\\&/g')
+        sed -i'.backup' -e "s/BOT_TOKEN =.*$/BOT_TOKEN = \"${ESCAPED_TOKEN}\"/" modules/config.py
+        ESCAPED_URL=$(printf '%s\n' "${{ secrets.DB_CONNECTION_URL }}" | sed -e 's/[\/&]/\\&/g')
+        sed -i'.backup' -e "s/DB_CONNECTION_URL =.*$/DB_CONNECTION_URL = \"${ESCAPED_URL}\"/" modules/config.py
         sed -i'.backup' -e 's/DB_NAME =.*$/DB_NAME = "${{ secrets.DB_NAME }}"/' modules/config.py
 
     - name: 📂 Sync files
