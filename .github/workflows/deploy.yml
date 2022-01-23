@@ -1,0 +1,24 @@
+on: push
+name: 🚀 Deploy bot on push
+jobs:
+  bot-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v2
+
+    - name: Set secrets
+      run: |
+        sed -i'.backup' -e 's/BOT_PREFIX =.*$/BOT_PREFIX = "${{ secrets.BOT_PREFIX }}"/' modules/config.py
+        sed -i'.backup' -e 's/BOT_TOKEN =.*$/BOT_TOKEN = "${{ secrets.BOT_TOKEN }}"/' modules/config.py
+        sed -i'.backup' -e 's/BOT_DESC =.*$/BOT_DESC = "${{ secrets.BOT_DESC }}"/' modules/config.py
+        sed -i'.backup' -e 's/DB_CONNECTION_URL =.*$/DB_CONNECTION_URL = "${{ secrets.DB_CONNECTION_URL }}"/' modules/config.py
+        sed -i'.backup' -e 's/DB_NAME =.*$/DB_NAME = "${{ secrets.DB_NAME }}"/' modules/config.py
+
+    - name: 📂 Sync files
+      uses: SamKirkland/FTP-Deploy-Action@4.2.0
+      with:
+        server: ${{ secrets.HOST_IP }}:${{ secrets.HOST_PORT }}
+        username: ${{ secrets.HOST_USER }}
+        password: ${{ secrets.HOST_PASSWORD }}
