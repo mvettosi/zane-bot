@@ -15,8 +15,11 @@ jobs:
         sed -i'.backup' -e 's/DB_NAME =.*$/DB_NAME = "cacca"/' modules/config.py
 
     - name: 📂 Sync files
-      uses: SamKirkland/FTP-Deploy-Action@4.2.0
+      uses: Creepios/sftp-action@v1.0.3
       with:
-        server: sftp://${{ secrets.HOST_IP }}:${{ secrets.HOST_PORT }}/
-        username: ${{ secrets.HOST_USER }}
-        password: ${{ secrets.HOST_PASSWORD }}
+        host: '${{ secrets.HOST_IP }}'
+        port: ${{ secrets.HOST_PORT }}
+        username: '${{ secrets.HOST_USER }}'
+        password: '${{ secrets.HOST_PASSWORD }}'
+        localPath: '.'
+        remotePath: '/'
